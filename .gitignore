@@ -1,0 +1,27 @@
+# Local reference repositories are intentionally not part of this project history.
+/reference_repos/
+
+# Facktry runtime state and experiment outputs.
+.facktry/
+runs/
+
+# Python artifacts.
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node/TypeScript artifacts.
+node_modules/
+dist/
+coverage/
+
+# Local environment and editor files.
+.env
+.env.*
+!.env.example
+.DS_Store
