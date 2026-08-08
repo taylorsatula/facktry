@@ -33,6 +33,25 @@ A prior experiment factory on this machine demonstrated content-hashed runs, man
 
 Facktry is **greenfield**. It does not import, share registries with, or subclass prior experiment implementations. Behavioral ideas worth preserving (hash everything that affects a decision; lineage; append-only metrics; read-only observation separate from mutation) are restated in this ADR as facktry requirements. Engineering invariants from `SHARED_KNOWLEDGE.md` are folded into doctrine and module contracts below. Host-specific paths, voice case-study constants, and one-off hyperparameters are **not** part of facktry.
 
+### Repository structure
+
+Facktry is a monorepo with two first-class packages:
+
+- **Python `facktry` package** — the harness, public CLI, `watch` surface, `agent_api`, persistence, policy, data, training, evaluation, decisions, serving, and domain-pack interfaces.
+- **TypeScript `facktry-pi` package** — the isolated Pi operator runtime, launcher, resource loader, prompts, skills, extensions, research worker, and Pi-facing tools.
+
+At repository level, keep the structure deliberately small:
+
+```text
+facktry/
+├── Python package and its tests
+├── facktry-pi/          # TypeScript Pi package and its tests
+├── docs/                # ADR, plans, and implementation guidance
+└── reference_repos/     # local prior art; ignored and never a runtime dependency
+```
+
+The Python and TypeScript packages are developed and released together, but remain separate build/install units. `facktry-pi` calls the Python `agent_api`; it does not duplicate `govern`, `store`, or other harness authority. The repository layout does not require one file or package per ADR module; internal file layout remains an implementation choice. Experiment state and artifacts live in the discovered `.facktry` workspace, not in either package.
+
 ---
 
 ## 3. Operator surfaces
