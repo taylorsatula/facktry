@@ -247,6 +247,8 @@ Footer strings must reflect the active mode.
 
 ## Tests
 
+Executable red contracts live in `facktry-pi/tests/questions.test.js` and run with `npm --prefix facktry-pi test`. They cover the pure schema/transitions/format surface before the Pi extension wiring exists.
+
 ### Schema / pure logic
 
 - Valid single and multi payloads normalize defaults (`allowOther`, `allowDetail` default true).  

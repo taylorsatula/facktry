@@ -23,7 +23,7 @@ Harness modules (`store`, `admit`, `train`, `agent_api`, …) live on the ADR tr
 ## Shared conventions
 
 - **Host:** tools register via Pi `ExtensionAPI` inside `facktry-pi` (see `PI_FOUNDATION.md`). They must not install into `~/.pi/agent/` by default.
-- **Package home:** target `facktry-pi/src/tools/` (and TUI helpers beside them). Until the tree exists, implement against the layout in `PI_FOUNDATION.md` §9.2.
+- **Package home:** target `facktry-pi/src/tools/` (and TUI helpers beside them). Until the tree exists, implement against the layout in `PI_FOUNDATION.md` §9.2. The red contract suite lives in `facktry-pi/tests/` and runs with `npm --prefix facktry-pi test`; it is intentionally separate from Python `pytest`. The initial Node tests import the emitted ESM `.js` boundary; the T00 TypeScript scaffold must provide that boundary before the suite can go green.
 - **Reference implementations:** Pi upstream examples under `@earendil-works/pi-coding-agent/examples/extensions/` (e.g. `question.ts`, `questionnaire.ts`). Copy patterns, not global install paths.
 - **Interactive UI:** `ctx.ui.custom()` + `@earendil-works/pi-tui` (`Editor`, `Key`, `matchesKey`, theme helpers). `executionMode: "sequential"` when the tool blocks on human input.
 - **Human I/O:** refuse clearly when `mode !== "tui"`; never wait for a human in headless runs. Noninteractive tools such as `research` must support print/JSON modes.

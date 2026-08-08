@@ -329,6 +329,8 @@ Do in this order so each slice is usable:
 
 ## Tests
 
+Executable red contracts live in `facktry-pi/tests/research.test.js` and run with `npm --prefix facktry-pi test`. They keep worker parsing/loop bounds separate from the future Pi-session integration.
+
 ### papers
 
 - HTML fixture → sections extracted; `section="3"` and title fuzzy match.  
