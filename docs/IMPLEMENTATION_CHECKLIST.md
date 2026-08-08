@@ -32,7 +32,7 @@
 - [ ] `runs/` (or workspace-relative runs) gitignored
 - [ ] `.facktry/` gitignored as appropriate
 - [ ] `tests/` laid out and pytest discovers them
-- [ ] README pointing at `ADR.md`, this checklist, and `skills/`
+- [ ] README pointing at `ADR.md`, this checklist, `docs/skills/`, and `docs/recipes/`
 - [ ] No runtime dependency on reference repositories
 
 **Notes:**
@@ -45,7 +45,7 @@
 
 Serialize/deserialize stably; hashes canonical.
 
-- [ ] `MissionBrief` + immutable versions / content hashes / supersede lineage
+- [ ] `MissionBrief` + immutable versions / content hashes / supersede lineage (including recipe considerations and human tradeoffs)
 - [ ] `Objective` + freeze immutability / supersede; every objective references a saved MissionBrief
 - [ ] `ReleaseTuple` + `tuple_hash` over components
 - [ ] `Run` + status enum
@@ -53,6 +53,8 @@ Serialize/deserialize stably; hashes canonical.
 - [ ] `Gate` / `GateResult` (severities, channels raw|guarded|n/a)
 - [ ] `Scorecard` (raw + guarded channels)
 - [ ] `Decision` + actions enum
+- [ ] `Recipe` + versioned instruction hash / append-only note hashes
+- [ ] `RecipeStack` + immutable composition hash
 - [ ] `Defect`
 - [ ] `Policy` / `BudgetLedger`
 - [ ] `TrainCard`
@@ -80,6 +82,9 @@ Serialize/deserialize stably; hashes canonical.
 - [ ] Open defects query
 - [ ] Pending inbox query
 - [ ] Latest decision / pinned production tuple
+- [ ] Recipe catalog: load/list/show/version recipes; append structured use notes without editing instructions
+- [ ] Recommend recipes from target effects, objective constraints, defects, notes, and prior outcomes
+- [ ] Persist/load immutable `RecipeStack`s with hash verification
 - [ ] Metrics stream path + append API
 - [ ] No agent-facing delete of protected runs (parents, pins, decision subjects)
 - [ ] Concurrent read-safe behavior documented/tested basically
@@ -92,14 +97,16 @@ Serialize/deserialize stably; hashes canonical.
 
 ## 3. `objective` / `elicit`
 
-- [ ] Adaptive `elicit` skill flow uses `questions` and optional `research` between volleys; session chooses follow-up path while covering required sections
-- [ ] `save_mission_brief` persists one complete immutable version at end of elicitation; individual hard-gate approvals required
+- [ ] Adaptive `elicit` skill flow uses `questions` and optional `research` between volleys; session retrieves relevant recipes/notes during human reasoning and covers required sections
+- [ ] `save_mission_brief` persists one complete immutable version at end of elicitation; individual hard-gate approvals and recipe considerations required
 - [ ] Load / show
 - [ ] Lint on freeze (ADR §5.0–§5.1 — saved complete MissionBrief, required sections, individual hard-gate approvals, and all Objective bullets)
 - [ ] Freeze persists bytes + content hash
 - [ ] Refuse mutate-after-freeze
 - [ ] Supersede → new id, link to old
 - [ ] List open/frozen objectives (for CLI auto-focus)
+- [ ] Recipe policy lint: applicability, allowed/forbidden ids, conflicts, stack limits, budget, and no weakening of hard gates
+- [ ] Compose and hash a compatible `RecipeStack` after MissionBrief exists
 
 **Notes:**
 
@@ -251,9 +258,11 @@ Serialize/deserialize stably; hashes canonical.
 - [ ] Metrics append stream
 - [ ] Callback: nonfinite/collapse → guarded + checkpoint
 - [ ] Callback: periodic mini sealed probe
+- [ ] Recipe retrieval available while interpreting smoke/scale metrics and choosing governed corrections
 - [ ] Callback: keep-best under hard probes
 - [ ] Callback: VRAM/budget envelope stop
 - [ ] `TrainCard` complete (incl. repeat exposure, teacher/reference)
+- [ ] RecipeStack hash and recipe-specific adaptations recorded in every train card
 - [ ] Preference pair contract enforced at admit/train
 - [ ] Post-preference full re-measure expectation wired to decide
 
@@ -315,6 +324,7 @@ Serialize/deserialize stably; hashes canonical.
 - [ ] Diagnostic ignored for promote/select
 - [ ] Intervention class mapping → defects
 - [ ] Dossier artifact (single-pass readable)
+- [ ] Applied RecipeStack ref/hash included in scorecards, Decisions, and yielded releases
 - [ ] Decision persisted in store
 
 **Tests:**
@@ -344,6 +354,8 @@ Serialize/deserialize stably; hashes canonical.
 - [ ] `defects_list` / `defects_close`
 - [ ] `yield_release`
 - [ ] `query_*` read surface shared with CLI
+- [ ] `list_recipes` / `show_recipe` / `recommend_recipes` / `compose_recipe_stack`
+- [ ] `append_recipe_note` records every governed use, including failures/non-promotions, without changing recipe instructions
 - [ ] Structured results; secrets never in manifests
 - [ ] Every mutator calls govern
 
@@ -392,24 +404,25 @@ Serialize/deserialize stably; hashes canonical.
 
 ## 17. Skills (operator model)
 
-Skills live in `skills/`. Each skill is markdown the operating model loads before acting.
+Canonical skills live in `docs/skills/`. Each skill is markdown the operating model loads before acting; package copies are mirrors.
 
-- [ ] `skills/README.md` — how skills work
-- [ ] `skills/operating-facktry/SKILL.md` — default operating doctrine
-- [ ] `skills/elicit-mission/SKILL.md` — adaptive question/research outline; save complete MissionBrief at end
-- [ ] `skills/freeze-objective/SKILL.md`
-- [ ] `skills/preflight/SKILL.md`
-- [ ] `skills/pin-suites/SKILL.md`
-- [ ] `skills/admit-data/SKILL.md`
-- [ ] `skills/generate-and-admit/SKILL.md`
-- [ ] `skills/train-smoke/SKILL.md`
-- [ ] `skills/train-scale/SKILL.md`
-- [ ] `skills/measure-and-compare/SKILL.md`
-- [ ] `skills/decide/SKILL.md`
-- [ ] `skills/yield-release/SKILL.md`
-- [ ] `skills/human-inbox/SKILL.md`
-- [ ] `skills/defects-and-correct/SKILL.md`
-- [ ] `skills/watch-progress/SKILL.md`
+- [ ] `docs/skills/README.md` — how skills work
+- [ ] `docs/skills/operating-facktry/SKILL.md` — default operating doctrine
+- [ ] `docs/skills/elicit-mission/SKILL.md` — adaptive question/research outline; save complete MissionBrief at end
+- [ ] `docs/skills/freeze-objective/SKILL.md`
+- [ ] `docs/skills/preflight/SKILL.md`
+- [ ] `docs/skills/pin-suites/SKILL.md`
+- [ ] `docs/skills/admit-data/SKILL.md`
+- [ ] `docs/skills/generate-and-admit/SKILL.md`
+- [ ] `docs/skills/train-smoke/SKILL.md`
+- [ ] `docs/skills/train-scale/SKILL.md`
+- [ ] `docs/skills/measure-and-compare/SKILL.md`
+- [ ] `docs/skills/decide/SKILL.md`
+- [ ] `docs/skills/yield-release/SKILL.md`
+- [ ] `docs/skills/human-inbox/SKILL.md`
+- [ ] `docs/skills/defects-and-correct/SKILL.md`
+- [ ] `docs/skills/watch-progress/SKILL.md`
+- [ ] `docs/skills/recipe-authoring/SKILL.md`
 - [ ] Skills revised after `agent_api` names stabilize (pass 2)
 - [ ] Skills mention only real import paths once code exists
 
@@ -417,6 +430,26 @@ Skills live in `skills/`. Each skill is markdown the operating model loads befor
 
 Initial skills written against ADR contracts before code exists. After API solidifies, update call examples to match real signatures.
 
+### 17.1 Recipes (model-effect catalog)
+
+Recipes live in `docs/recipes/<recipe-id>/RECIPE.md`; `_template/RECIPE.md` is authoring guidance. The curated recipe body is versioned and hashed; `## Recipe Notes` is append-only institutional memory.
+
+- [ ] `docs/recipes/README.md` — catalog rules and proposal → recipe lifecycle
+- [ ] `docs/recipes/_template/RECIPE.md` — structured effect recipe template
+- [ ] Parse/lint recipe front matter and required sections
+- [ ] Load/list/show immutable recipe versions with instruction hashes
+- [ ] Append structured notes with run/evidence refs; reject edits/deletes to prior notes
+- [ ] Compose compatible recipes into an immutable `RecipeStack` with ordered refs, overrides, allocation, and validation plan
+- [ ] Recipe stack cannot bypass govern/admit/smoke/sealed measure/decide or weaken Objective hard gates
+- [ ] Recipe retrieval is encouraged during planning, training-method choice, correction, and human-inbox reasoning
+- [ ] Recipe notes inform planning but never satisfy measured gates alone
+- [ ] Every governed use appends measured or failure evidence back to the relevant recipe notes
+- [ ] Recipe instruction changes create a new version; notes do not change old operational meaning
+- [ ] No secrets, raw private examples, or identifying data in recipe sources or notes
+
+**Notes:**
+
+Recipes are curated reusable effect knowledge. `research` produces provisional `RecipeProposal` evidence and does not silently write the catalog.
 
 
 ---
@@ -438,6 +471,11 @@ Mirror of mandatory test categories — check off when green in CI/local pytest:
 - [ ] suite pin required before admit-for-train
 - [ ] preference pairs rejected if inputs differ
 - [ ] preference train still fails decide when task hard gates drop
+- [ ] recipe recommendation ranks relevant recipes from target effect, defects, notes, and prior outcomes
+- [ ] recipe stack rejects incompatible or unapproved recipe combinations
+- [ ] recipe notes append without changing the referenced instruction hash
+- [ ] failed and non-promoted recipe uses still append structured evidence
+- [ ] recipe application cannot weaken Objective hard gates or skip governed stages
 - [ ] compat_check catches template/tokenizer drift
 - [ ] CLI auto-focus ordering and empty state
 - [ ] rollback restores previous pinned tuple
@@ -456,9 +494,10 @@ Mirror of mandatory test categories — check off when green in CI/local pytest:
 - [ ] 5 — Human inbox + CLI pressure
 - [ ] 6 — Pin ReleaseTuple + reproducible dossier
 - [ ] 7 — Bare `facktry` situational awareness
-- [ ] 8 — Ancestors hash-unchanged after corrective trains
-- [ ] 9 — §13.3 / section 18 tests pass
-- [ ] 10 — Every objective and experiment traces to an immutable MissionBrief containing intent, success case, research pointers, and hard-gate approvals
+- [ ] 8 — Curated recipes compound through governed, measured, hashed RecipeStacks and append-only use notes/recommendations
+- [ ] 9 — Ancestors hash-unchanged after corrective trains
+- [ ] 10 — §13.3 / section 18 tests pass
+- [ ] 11 — Every objective and experiment traces to an immutable MissionBrief containing intent, success case, research pointers, and hard-gate approvals
 
 ---
 
@@ -486,6 +525,7 @@ Update timestamps (UTC) and counts whenever you edit this file.
 | 15 watch CLI | [ ] | | |
 | 16 domain packs | [ ] | | |
 | 17 skills | [ ] | | |
+| 17.1 recipes | [ ] | | |
 | 18 mandatory tests | [ ] | | |
 | 19 success criteria | [ ] | | |
 
@@ -504,6 +544,6 @@ Update timestamps (UTC) and counts whenever you edit this file.
 ```text
 Implement facktry per /home/admin/facktry/docs/ADR.md.
 Track progress only in /home/admin/facktry/docs/IMPLEMENTATION_CHECKLIST.md (update checkboxes in the same commit/change as code).
-Operator skills are under /home/admin/facktry/docs/skills/ for the model that runs facktry — keep them aligned with agent_api.
+Operator skills are under /home/admin/facktry/docs/skills/ and recipes under /home/admin/facktry/docs/recipes/ — keep both aligned with `agent_api` and governed execution.
 Do not build an MVP that bypasses govern/admit/smoke/measure. Do not depend on reference repositories at runtime.
 ```

@@ -57,4 +57,4 @@ Phase docs live in three directories reflecting their state:
 | 14 | [planned/phase_14_play.md](planned/phase_14_play.md) | World protocol, subject↔partner loops | [ ] |
 | 15 | [planned/phase_15_judge.md](planned/phase_15_judge.md) | Calibrated LLM judge | [ ] |
 | 16 | [planned/phase_16_serve.md](planned/phase_16_serve.md) | Tuple serving, guards, canary, rollback | [ ] |
-| 17 | [planned/phase_17_domain_packs_final.md](planned/phase_17_domain_packs_final.md) | Domain pack registry, skills pass 2, full conformance sweep | [ ] |
+| 17 | [planned/phase_17_domain_packs_final.md](planned/phase_17_domain_packs_final.md) | Domain pack registry, skills pass 2, recipe catalog/composition, full conformance sweep | [ ] |

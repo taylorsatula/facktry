@@ -7,6 +7,7 @@ Facktry is an autonomous model-training harness. The repository is currently in 
 - [`docs/ADR.md`](docs/ADR.md) — authoritative product specification
 - [`docs/IMPLEMENTATION_CHECKLIST.md`](docs/IMPLEMENTATION_CHECKLIST.md) — implementation progress
 - [`docs/PI_FOUNDATION.md`](docs/PI_FOUNDATION.md) — isolated Pi operator runtime
+- [`docs/recipes/README.md`](docs/recipes/README.md) — reusable model-effect recipes and composition rules
 - [`docs/PI_RUNTIME.md`](docs/PI_RUNTIME.md) — Pi runtime structure
 - [`docs/codebase_implementation_steps/`](docs/codebase_implementation_steps/) — Python harness phases
 - [`docs/tools_implementation_steps/`](docs/tools_implementation_steps/) — Pi tool phases

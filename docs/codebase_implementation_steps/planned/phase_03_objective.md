@@ -14,7 +14,7 @@ Save a complete, versioned `MissionBrief`, then freeze a mission into a hashed, 
 ## In scope (`facktry/objective.py`)
 
 ### API
-- `save_mission_brief(store, dossier: MissionBrief) -> SavedMissionBrief` — creates one immutable version with canonical bytes and content hash; never overwrites an earlier version. The operator calls this once at the end of elicitation.
+- `save_mission_brief(store, dossier: MissionBrief) -> SavedMissionBrief` — creates one immutable version with canonical bytes and content hash; never overwrites an earlier version. The operator calls this once at the end of elicitation, after recording recipe candidates/notes consulted and human tradeoffs when applicable.
 - `load_mission_brief(store, brief_id, version=None) -> MissionBrief` — verifies the saved hash before deserialization.
 - `show_mission_brief(store, brief_id, version=None) -> dict` — human/agent-readable dossier view.
 - `list_mission_briefs(store, objective_id=None)` — newest saved versions first.
@@ -35,6 +35,7 @@ Save a complete, versioned `MissionBrief`, then freeze a mission into a hashed, 
 7. All budget fields non-negative; at least one exhaustion behavior defined (`hold` or `abort`).
 8. `dependence_keys` non-empty when any split data will exist (objective declares suites or data stages).
 9. `no_self_distill` constraint present and defaults to true when absent.
+10. When `recipe_policy` or a selected `RecipeStack` is present, recipe instruction hashes exist, applicability/conflicts/budget validate, and no stack rule weakens an Objective hard gate.
 
 ## Out of scope
 
@@ -49,7 +50,8 @@ Save a complete, versioned `MissionBrief`, then freeze a mission into a hashed, 
 
 ## Tests
 
-- MissionBrief save: one complete dossier persists with a stable version/hash; revised saves create a new version; tampered or partial records refuse load.
+- MissionBrief save: one complete dossier persists with a stable version/hash; revised saves create a new version; tampered or partial records refuse load; recipe considerations survive round-trip.
+- Recipe policy/stack lint refuses missing hashes, incompatible recipes, budget violations, or any attempt to weaken hard gates.
 - Each lint rule: one fixture violating exactly that rule → refused with that violation named; the fully-valid fixture freezes.
 - Freeze persists bytes; reload round-trips; tampered file on disk → load raises.
 - Freeze without a saved MissionBrief, with incomplete sections, or without individual hard-gate approvals → typed refusal.

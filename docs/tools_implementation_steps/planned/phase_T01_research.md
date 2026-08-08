@@ -19,8 +19,9 @@ Ship a parent-facing **`research` tool** for the facktry operator image that:
 2. Runs an **isolated** worker agent with a **read-mostly** tool allowlist.
 3. Forces a **literature-first crawl** (papers → citation graph → methodology → result↔recipe → dataset check → code/docs).
 4. Returns only a **bounded, structured recipe summary** into the parent context (no raw paper dumps).
+5. Produces a provisional `RecipeProposal`; it does not silently create or edit a curated `docs/recipes/<id>/RECIPE.md`.
 
-This is the highest-leverage operator capability before harness mutations exist: it turns “how should we train?” into attributed, checkable proposals.
+This is the highest-leverage operator capability before harness mutations exist: it turns “how should we train?” into attributed, checkable proposals that can later be curated into reusable effect recipes.
 
 ---
 
@@ -43,7 +44,7 @@ ml-intern is large. **Implement only what moves quality the most.** Ranked by gr
 | **P3** | YOLO billing, Trackio-alert loops, HF Jobs preflight essays, web UI research overlays | Low leverage for facktry foundation | skip |
 | **P3** | Unrestricted worker `bash` | Foot-gun; prefer fetch inside papers tool | skip or deny by default |
 
-**Non-goals for T01:** full ml-intern product, sealed eval, admit, train jobs, recipe-as-hashed-store-artifact (stretch note only), multi-judge panels.
+**Non-goals for T01:** full ml-intern product, sealed eval, admit, train jobs, automatic promotion of `RecipeProposal` into a curated recipe, recipe-stack execution, multi-judge panels. Parsing a proposal into a provisional artifact is a stretch; curated `RECIPE.md` loading and governed `RecipeStack` composition belong to the recipe/catalog track.
 
 ---
 
@@ -140,8 +141,8 @@ Update facktry operator `SYSTEM.md` (when it exists) with a tight block:
 
 - Treat baked-in library knowledge as stale for train recipes.  
 - Before proposing or implementing a training approach, call `research` with a specific task + user constraints in `context`; during `elicit`, use it between question volleys when it can sharpen the next questions or success-case proposals.  
-- Research output is a **proposal**, not a passed gate. During elicitation, retain only a one-line summary and references/pointers in the MissionBrief; do not copy full paper bodies into the dossier.  
-- Skip only for trivial non-method questions.  
+- Research output is a **proposal**, not a passed gate or curated recipe. During elicitation, retain only a one-line summary and references/pointers in the MissionBrief; do not copy full paper bodies into the dossier. A proposal may later be reviewed into `docs/recipes/<recipe-id>/RECIPE.md`.
+- Skip only for trivial non-method questions.
 - On plateau/failure of an approach, research again (deeper graph), don’t invent scope changes.
 
 Do not paste the entire ml-intern Trackio/Jobs essay into the parent prompt.
@@ -285,8 +286,8 @@ facktry-pi/
 
 ## Out of scope
 
-- Harness gates consuming recipes as truth  
-- Auto-starting train from a recipe  
+- Harness gates consuming research proposals or recipe notes as truth
+- Auto-starting train from a research proposal or recipe
 - ml-intern YOLO, Trackio, Jobs, sandbox GPU preflight walls  
 - Full docs endpoint zoo on day one (subset is enough)  
 - Perfect citation-intent analytics UI  
@@ -370,8 +371,9 @@ Do in this order so each slice is usable:
 | Next | Purpose |
 |---|---|
 | T01.1 | P1/P2 tools if deferred; snippet_search + recommend |
-| T01.2 | Structured `RecipeProposal` JSON + optional store artifact when `store` exists |
-| F2 harness tools | Parent may pass recipe refs into objective notes — still not auto-gates |
+| T01.2 | Structured `RecipeProposal` JSON + optional provisional artifact when `store` exists |
+| Recipe/catalog track | Curated `RECIPE.md` parsing, append-only notes, `RecipeStack` composition, and governed application |
+| F2 harness tools | Parent may pass curated recipe/stack refs into objective and run records — still not auto-gates |
 | Eval harness | Golden tasks: “find recipe for X” scored on presence of arxiv + dataset + hparams |
 
 ---

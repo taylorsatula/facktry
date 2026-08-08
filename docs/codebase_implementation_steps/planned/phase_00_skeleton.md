@@ -19,7 +19,7 @@ An installable, importable `facktry` package with pytest scaffolding and workspa
 - `facktry/workspace.py`: `resolve_workspace()` implementing `FACKTRY_HOME` → walk cwd/parents for `.facktry/` → create `.facktry/` in cwd. Returns a `Workspace` dataclass with `root` and the standard subpaths (`runs/`, `artifacts/`, `objectives/`, `index.sqlite3`). Creating missing subdirs is allowed here.
 - `facktry/cli/main.py` minimal dispatcher that prints a "not yet implemented; see IMPLEMENTATION_CHECKLIST.md" message for live view. **Explicitly temporary** — phase 10 replaces it with the real monitor. Do not grow features here.
 - `.gitignore`: `.facktry/`, `runs/`, `__pycache__`, `*.egg-info`, `.pytest_cache`.
-- `README.md` pointing at `ADR.md`, `IMPLEMENTATION_CHECKLIST.md`, `skills/`, and this directory.
+- `README.md` pointing at `ADR.md`, `IMPLEMENTATION_CHECKLIST.md`, `docs/skills/`, `docs/recipes/`, and this directory.
 - `tests/` with `conftest.py` providing a `tmp_workspace` fixture (uses `tmp_path` + `FACKTRY_HOME` override).
 
 ## Out of scope

@@ -5,9 +5,10 @@
 | **Status** | Design accepted — not yet implemented |
 | **Date** | 2026-08-06 |
 | **Authority** | Companion to `ADR.md`. This document defines the **operator runtime** that hosts the facktry agent. It does not replace the harness contracts in the ADR. |
-| **Relationship to ADR** | ADR §3 (`agent_api` + skills) and §7.13–7.16 assume an LLM operator. This document specifies **how that operator is hosted**: a reformed Pi session image launched by `facktry run`, isolated from a normal `pi` coding session. |
+| **Relationship to ADR** | ADR §3 (`agent_api` + skills) and §7.13–7.17 assume an LLM operator. This document specifies **how that operator is hosted**: a reformed Pi session image launched by `facktry run`, isolated from a normal `pi` coding session. |
 | **Relationship to checklist** | Implementation of this foundation is a **prerequisite track** that may start before harness modules land. It must not invent a reduced harness or bypass future `govern` checks. When `agent_api` exists, tools here become thin façades over it. |
 | **Operator tools track** | [`tools_implementation_steps/`](tools_implementation_steps/) — phased tool work for the session image (e.g. `questions`). Separate from harness `codebase_implementation_steps/`. |
+| **Operator recipes** | [`recipes/`](recipes/) — curated, versioned effect recipes and append-only subsequent-use notes. |
 | **Audience** | Implementation agents and human overseers |
 | **Code location (target)** | `/home/admin/facktry` (product). Design and pre-actualization notes may live under `/home/admin/facktry` until the facktry tree is the working root. |
 
@@ -81,7 +82,7 @@ These are fail-closed laws for the **session image**. Violating them is a produc
 5. **Summaries are structured.** Research return shape is a contract (recipe table + refs + gaps), not free-form chat.
 6. **Mutation is facktry-native.** Weight/data/decision mutations go through facktry tools → (eventually) `agent_api` → `govern`. No “just bash train.py” as the blessed path.
 7. **Harness incomplete ≠ harness bypass.** Until `agent_api` exists, mutation tools are absent or return explicit `not_implemented` / `harness_unavailable`. They must not fake success.
-8. **Skills are documentation.** Markdown skills teach call order; they do not replace tool enforcement.
+8. **Skills and recipes are documentation with contracts.** Skills teach call order; recipes specify how to create an effect. Neither replaces tool enforcement. Recipe instructions are versioned; recipe notes are append-only memory.
 9. **One launcher, two modes.** Interactive operator chat and headless single-shot share the same image factory.
 10. **Workspace is facktry’s.** Session files and operator state hang off the facktry workspace (`.facktry/` / `FACKTRY_HOME`), not the global Pi session pile, unless an explicit escape hatch says otherwise.
 11. **Subagents are read-mostly by default.** Research workers do not get `train_*`, `yield_release`, or ungoverned filesystem write.
@@ -131,6 +132,7 @@ These are fail-closed laws for the **session image**. Violating them is a produc
 │  prompts: SYSTEM.md (operator)                              │
 │  agents: research.md (and future specialists)               │
 │  skills: elicit / freeze / admit / smoke / … (aligned with ADR) │
+│  recipes: curated effect specifications + notes                │
 └─────────────────────────────────────────────────────────────┘
                            │
            normal `pi` ────┘  does NOT load facktry-pi
@@ -221,7 +223,7 @@ The parent agent is **Facktry Operator**, not “a coding assistant,” not ML I
 1. **Identity** — Facktry Operator for this workspace; do not claim to be Claude/ChatGPT/etc.  
 2. **Surfaces** — You mutate via facktry tools; humans use `facktry watch`; you do not ask humans to type train CLIs.  
 3. **Control loop awareness** — elicit → save MissionBrief → freeze objective → pin suites → admit → smoke → scale → select → measure → decide → promote/correct (ADR §8). Even before tools exist, plan in this order.  
-4. **Research-before-implementation** — for ML method/recipe choices, call `research` before inventing trainers/hparams/datasets.  
+4. **Research and recipe memory** — for ML method/recipe choices, call `research` when evidence is missing and retrieve relevant curated recipes, notes, defects, and prior outcomes before inventing an intervention. Revisit recipes during training/correction planning and after human answers change the target or tradeoffs.
 5. **Fail-closed stance** — if a tool denies or harness is missing, report blocker; do not pretend gates passed.  
 6. **Privacy** — no raw private data in artifacts, logs, or research exports.  
 7. **No self-distill / no ancestor overwrite** — restate ADR doctrine at operator level.  
@@ -248,8 +250,10 @@ Tools are registered in the image from day one as a **stable vocabulary**. Imple
 | `questions` | Structured human Q&A with multiple choice and optional detail | No |
 | `research` | Spawn isolated research subagent; return recipe summary | No (read-only worker) |
 | `facktry_workspace` | Show resolved workspace root, image version, session id | No |
-| `facktry_help` | Summarize available tools + skill names + loop diagram | No |
-| `read_doc` | Read facktry design docs (ADR, this file, skills) with path allowlist | No |
+| `facktry_help` | Summarize available tools + skill and recipe names + loop diagram | No |
+| `read_doc` | Read facktry design docs (ADR, this file, skills, recipes) with path allowlist | No |
+| `list_recipes` / `show_recipe` | Discover curated effect recipes and append-only notes | No |
+| `recommend_recipes` | Rank relevant recipes for a target effect and current objective context | No |
 | Optional narrow `read` | Read within workspace allowlist | No |
 | Optional narrow `bash` | **Off by default** in F0; if enabled for dev, extension `tool_call` hook blocks obvious destructive patterns and records audit | Dangerous; prefer off |
 
@@ -267,6 +271,8 @@ When `store` + partial APIs exist:
 | `inbox_list` | inbox read |
 | `defects_list` | defects read |
 | `facktry_status_snapshot` | same data `facktry status` uses |
+| `recommend_recipes` | rank effect recipes using objective, defects, notes, and prior outcomes; no mutation |
+| `compose_recipe_stack` | validate and hash a compatible recipe composition; no mutation |
 
 Still no train/admit.
 
@@ -274,7 +280,7 @@ Still no train/admit.
 
 Tools mirror ADR §7.13 capabilities (names may match `agent_api` 1:1):
 
-`save_mission_brief`, `show_mission_brief`, `list_mission_briefs`, `freeze_objective`, `pin_suites`, `admit`, `generate_and_admit`, `train_smoke`, `train_scale`, `select_checkpoint`, `measure`, `compare`, `decide`, `yield_release`, `inbox_ingest` (usually human), defect close, etc.
+`save_mission_brief`, `show_mission_brief`, `list_mission_briefs`, `freeze_objective`, `pin_suites`, `list_recipes`, `show_recipe`, `recommend_recipes`, `compose_recipe_stack`, `admit`, `generate_and_admit`, `train_smoke`, `train_scale`, `select_checkpoint`, `measure`, `compare`, `decide`, `append_recipe_note`, `yield_release`, `inbox_ingest` (usually human), defect close, etc.
 
 Each tool:
 
@@ -297,13 +303,13 @@ Do not use dynamic tool loading as a substitute for govern. Phase of the **missi
 
 ### 6.4 Skills (markdown playbooks)
 
-Ship under `facktry-pi/skills/` and/or facktry Python `skills/` — **one canonical set** referenced by ADR. Pi skills are the operator-facing copies or thin wrappers pointing at the same text.
+Author the canonical set under `docs/skills/` as referenced by the ADR. Ship package-local copies under `facktry-pi/skills/` and/or facktry Python resources; copies are operator-facing mirrors or thin wrappers and must not drift.
 
 Minimum skill topics (aligned with ADR §7.16):
 
 - elicit and save MissionBrief  
 - freeze objective  
-- pin suites + research recipes  
+- pin suites and select/compose recipe stacks
 - admit / generate_and_admit  
 - smoke then scale  
 - measure / decide  
@@ -312,9 +318,17 @@ Minimum skill topics (aligned with ADR §7.16):
 
 Skills describe **tool call sequences**. They must be updated when tool names stabilize.
 
-The `elicit` skill is an adaptive outline, not a fixed questionnaire: it requires the universal brief sections and any domain-pack sections, but lets the session choose follow-ups and research depth. It uses `questions` for human volleys, `research` between volleys as useful, asks the human to approve each proposed hard gate individually, and calls `save_mission_brief` once at the end. A failed save blocks `freeze_objective` and every experiment path.
+The `elicit` skill is an adaptive outline, not a fixed questionnaire: it requires the universal brief sections and any domain-pack sections, but lets the session choose follow-ups and research depth. It uses `questions` for human volleys, `research` and recipe retrieval between or during volleys as useful, asks the human to approve each proposed hard gate individually, records recipe considerations and tradeoffs, and calls `save_mission_brief` once at the end. A failed save blocks `freeze_objective` and every experiment path.
 
-### 6.5 Slash commands (extension commands)
+### 6.5 Recipes (effect specifications)
+
+Recipes are not an alternate skill format. The canonical source is `docs/recipes/<recipe-id>/RECIPE.md`; the Pi image exposes read-only catalog discovery and delegates recommendation/composition to the Python harness when available. A recipe describes the ingredients and proof plan for creating a named effect such as a warmer conversational voice or stronger agentic search. It may span data, training, prompt/interface, serving, and evaluation.
+
+Recipe retrieval is encouraged at every substantive development decision: initial planning, training-method selection, correction after a failed gate, and human-inbox reasoning. The operator may read recipe notes when planning, but must distinguish anecdotal use notes from measured evidence. `recommend_recipes` proposes candidates; `compose_recipe_stack` resolves exact recipe versions, order, overrides, conflicts, and validation suites into an immutable stack. Applying a stack still uses the ordinary `agent_api` path and remains subject to `govern`, `admit`, smoke, sealed measure, and decision gates.
+
+`## Recipe Notes` is append-only. After each governed use, the operator is encouraged to append a note recording later context, adaptation, effect, regression, evidence refs, recommendation, and confidence—even when the recipe failed or was not promoted. Editing instructions requires a new recipe version; appending a note must not silently change the old recipe's behavior. The loader and artifact store must keep recipe instructions and notes distinguishable for hashing and reproducibility.
+
+### 6.6 Slash commands (extension commands)
 
 | Command | Behavior |
 |---|---|
@@ -456,15 +470,22 @@ Implement as facktry-owned tools (TypeScript and/or Python service called from T
 
 This substrate is the hard part of “up-to-date research”; the prompt only orders its use.
 
-### 7.8 Typed recipe artifact (stretch, recommended soon after F0)
+### 7.8 Research proposal artifact
 
-Parse research markdown (or ask worker for JSON mode) into a `RecipeProposal` artifact in the facktry store when store exists:
+Parse research markdown (or ask worker for JSON mode) into a provisional `RecipeProposal` artifact in the facktry store when store exists:
 
-- content hash  
-- parent session id / research run id  
-- structured recipes[]  
+- content hash
+- parent session id / research run id
+- structured recipes[]
+- evidence and limitations
 
-Later, `freeze_objective` / plan steps can **reference** recipe hashes. Foundation may ship markdown-only first, but the schema should be sketched in code comments or types stub so the contract does not rot.
+A proposal is not a catalogued recipe and cannot directly mutate an objective. A human or operator may curate it into `docs/recipes/<recipe-id>/RECIPE.md`, preserving references and limitations.
+
+### 7.9 Curated recipe and stack artifacts
+
+When the store exists, parse curated `RECIPE.md` sources as `Recipe` artifacts with a stable instruction hash over front matter and instructional sections, distinct from separately hashed append-only notes. A full source snapshot may also be registered for audit. Notes can accumulate without changing the meaning of an old recipe version. `compose_recipe_stack` creates an immutable `RecipeStack` artifact containing exact recipe instruction refs, ordering, overrides, conflict decisions, ingredient allocation, and validation plan.
+
+Every run, candidate tuple, scorecard/Decision dossier, and yielded release that uses a recipe records the stack hash. Research notes and recipe use notes are planning evidence; only ordinary measured gates can authorize a release.
 
 ---
 
@@ -547,7 +568,8 @@ Foundation implements the invoke stub with `op=ping` / `op=workspace_info` only.
 facktry/                         # Python harness (ADR)
   pyproject.toml
   src/facktry/ or facktry/
-  skills/                     # canonical skill markdown (ADR)
+  skills/                     # package copy of canonical docs/skills/
+  recipes/                    # loader/catalog copy of canonical docs/recipes/
   ...
 
 facktry-pi/                      # Operator runtime (this document)
@@ -573,6 +595,7 @@ facktry-pi/                      # Operator runtime (this document)
   agents/
     research.md               # research worker definition
   skills/                     # Pi-visible copies or codegen from ../skills
+  recipes/                    # Pi-visible recipe catalog or generated index
   extensions/
     index.ts                  # register tools, commands, hooks
   tests/
@@ -759,7 +782,8 @@ No runtime dependency on `ml-intern` or `mlintern-plugin`.
 | §4 doctrine | Parent prompt + enforced in Python |
 | §7.13 agent_api ops | Tool vocabulary |
 | §7.16 skills | Shipped to operator image |
-| §8 control loop | Prompt + skills; tools enforce order via govern |
+| §7.17 recipes | Shipped as read-only effect catalog; recommendation/composition through governed agent_api; notes compound over uses |
+| §8 control loop | Prompt + skills + recipe stacks; tools enforce order via govern |
 | §13.2 build order | Foundation track parallel; F2 waits for agent_api |
 
 The ADR now enshrines the complementary product contract: every objective and experiment requires a saved MissionBrief, and the Pi image is the reference operator host that performs adaptive elicitation with `questions` and `research` before calling `save_mission_brief` and `freeze_objective`. Normal `pi` does not load facktry. This file remains authoritative for the operator-host implementation, while `ADR.md` remains authoritative for harness behavior.
@@ -793,7 +817,8 @@ The foundation is complete enough to build on when:
 6. Bridge stub can ping Python facktry package (once skeleton exists).  
 7. Docs tell operators: `facktry run` for agent, `facktry watch` for human, `pi` for generic coding.  
 8. An operator can complete adaptive elicitation, save a MissionBrief, and only then reach objective/experiment tools.  
-9. When `agent_api` lands, new tools plug into the same image without relaunch redesign.  
+9. When `agent_api` lands, new tools plug into the same image without relaunch redesign.
+10. The operator can discover and receive recommendations from curated recipes, inspect append-only use notes, and feed governed outcomes back into the recipe memory without loading ambient user resources.
 
 ---
 

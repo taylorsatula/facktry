@@ -9,7 +9,8 @@
 | **Authority** | This document is the sole product specification for facktry. Implement against it. Do not invent a reduced scope, “phase 1,” or temporary architecture that must be thrown away. |
 | **Progress tracking** | `/home/admin/facktry/docs/IMPLEMENTATION_CHECKLIST.md` — agents **must** update checkboxes in the same change set as code. After context compaction, read ADR + checklist before coding. |
 | **Operator skills** | `/home/admin/facktry/docs/skills/` — playbooks for the model that *runs* facktry (`agent_api`). Keep aligned with real API names as code lands. |
-| **Operator host** | `PI_FOUNDATION.md` — the isolated Pi session image launched by `facktry run`; it binds the operator to `questions`, `research`, and the eventual `agent_api`. |
+| **Operator recipes** | `/home/admin/facktry/docs/recipes/` — versioned, evidence-backed specifications for creating named effects in a model stack. |
+| **Operator host** | `PI_FOUNDATION.md` — the isolated Pi session image launched by `facktry run`; it binds the operator to `questions`, `research`, recipes, and the eventual `agent_api`. |
 
 ---
 
@@ -22,6 +23,8 @@ Natural-language intent is not yet an executable objective. Before any objective
 **Deliverable of a successful model objective:** a pinned `ReleaseTuple` (the full shippable stack: base weights, adapter if any, tokenizer, chat template, prompt policy, tool/state schema, decode defaults, guard policy) plus a `Decision` whose cited hard gates are reproducible from content-hashed artifacts alone.
 
 **Deliverable of a successful data-only objective:** admitted corpus artifacts plus a `Decision`. Corpus work is otherwise intermediate fuel for model objectives.
+
+Facktry is also a compounding model-development system. During planning, training, correction, and human-interactive reasoning, the operator should retrieve relevant recipes and their accumulated use notes instead of rediscovering known interventions. Each governed run adds measured experience back to the recipe book, improving future recipe selection and composition. This is continuous agentic learning for model development: the agent improves its intervention knowledge and choices over time, while model changes themselves remain explicit, hashed, evaluated, and governed.
 
 **Words in, model out** is the default shape for finetune objectives: harvest or synthesize data → admit → smoke train → scale train → select checkpoint → paired sealed measure → decide → yield `ReleaseTuple`.
 
@@ -93,6 +96,7 @@ These are fail-closed laws. An implementation that violates them is incorrect ev
 20. **Multi-turn for dialogue.** Conversational objectives require multi-turn suites and play; single-turn probes alone are insufficient for measure or promote.
 21. **Elicit before freeze.** Natural-language missions must pass adaptive elicitation before freeze. The operator follows the `elicit` skill’s outline, chooses the question path, uses the structured questions tool for human input, and may use isolated research between volleys. The human approves every proposed hard gate individually. Research is proposal evidence, not a gate.
 22. **Intent is durable provenance.** The completed MissionBrief is saved as an immutable version before `freeze_objective`; it records the user’s request, success case, research pointers, and gate approvals. Session chat alone never satisfies this requirement.
+23. **Recipe-guided compounding.** During planning, training, correction, and human-interactive reasoning, the operator should retrieve relevant recipes, notes, defects, and prior outcomes; successful or failed uses append structured evidence back to the recipe book. Catalog growth improves candidate selection but never replaces fresh measurement, hard gates, or human authority.
 
 ---
 
@@ -118,6 +122,7 @@ Required fields:
 | `dossier` | Structured intent, success case, constraints, evaluation plan, and question history |
 | `hard_gate_approvals[]` | Exact proposed hard gates and individual human responses |
 | `research_notes[]` | One-line summaries, stable references, retrieval metadata, and research run/artifact refs |
+| `recipe_considerations[]` | Recipe refs/versions and notes consulted, human tradeoffs, and selected/rejected effect candidates; planning provenance, not measured evidence |
 | `objective_ref` | Optional draft/frozen Objective reference when known; the Objective→MissionBrief link is authoritative, and adding a reverse index never mutates brief bytes |
 | `created_at` | Save timestamp |
 
@@ -132,6 +137,7 @@ Required contents:
 - every proposed hard gate with its exact definition and **individual human approval**
 - question rounds: exact prompts, accepted answers, values/details, order, and meaningful revisions
 - very brief one-line research summaries with references (URLs, paper ids, or other stable pointers), retrieval metadata, and research run/artifact refs; full paper bodies are not required in the brief and may be fetched later
+- recipe candidates and relevant notes consulted during elicitation or human-interactive reasoning, the human’s material tradeoff decisions, and any selected/rejected effect rationale; recipe notes remain planning evidence
 - open assumptions and any draft Objective reference
 
 The MissionBrief is provenance and intent evidence, not a measured `GateResult`; research recorded in it remains proposal evidence. The canonical `elicit` skill defines the required outline, while the operator chooses its own path through follow-up questions.
@@ -157,6 +163,7 @@ Required fields:
 | `mixture` | Optional `MixtureSpec` / `TargetShape` |
 | `policy` | Autonomy hooks: what auto-runs vs `ask_human`; `human_promote` default **true** for model deliverables |
 | `interface` | Pinned prompt policy, tool schema, decode profile ids that candidate tuples must match |
+| `recipe_policy` | Optional target effects, allowed/forbidden recipe ids, stack-size and compatibility constraints; exact stacks are recorded per run |
 
 **Freeze lint (must refuse freeze on violation):**
 
@@ -169,6 +176,7 @@ Required fields:
 - Budget all non-negative; at least one exhaustion behavior defined (`hold` or `abort`).
 - `dependence_keys` non-empty when any split data will exist.
 - Constraint `no_self_distill` defaults true.
+- When `recipe_policy` or a preselected `RecipeStack` is present, recipe refs/hashes, compatibility constraints, and validation requirements lint successfully; no selected stack weakens an Objective hard gate.
 
 ### 5.2 `ReleaseTuple`
 
@@ -184,7 +192,8 @@ The only shippable model identity. Promotion pins one. Eval loads them. Train em
 | `tool_schema` | Id + hash (may be empty schema) |
 | `decode` | Id + full config hash (temp, top_p, max tokens, stop, seed policy) |
 | `guards` | Id + hash of guard policy |
-| `tuple_hash` | Hash over all component hashes |
+| `recipe_stack` | Exact `RecipeStack` ref + hash used to create this tuple, or null when no recipe was applied; provenance, not an independent serving component |
+| `tuple_hash` | Hash over all component hashes and the recipe-stack hash |
 
 `compat_check(a, b)` passes only when tokenizer, chat_template, prompt_policy, tool_schema, and decode hashes match (or differ only on fields the objective explicitly allows, e.g. adapter weights during train-vs-base compare). Guard hash may differ only when comparing raw vs guarded channels deliberately.
 
@@ -207,12 +216,13 @@ One attempt at one unit of work.
 | `inputs[]` / `outputs[]` | `Artifact` refs |
 | `guard_report` | Optional structured trip record |
 | `metrics_path` | Append-only metrics stream |
+| `recipe_stack` | Exact `RecipeStack` ref + hash used by this run, when applicable |
 
 ### 5.4 `Artifact`
 
 `path + sha256 + role + producer_run_id + created_at + media_type?`
 
-**Source-class roles** (when applicable): `public`, `fictional`, `private_redacted`, `synthetic`, `replay`, `preference`, `train`, `dev`, `seal`, `report`, `checkpoint`, `tuple`, `decision`, `scorecard`, `admission`, `mission_brief`, `log`.
+**Source-class roles** (when applicable): `public`, `fictional`, `private_redacted`, `synthetic`, `replay`, `preference`, `train`, `dev`, `seal`, `report`, `checkpoint`, `tuple`, `decision`, `scorecard`, `admission`, `mission_brief`, `recipe`, `recipe_stack`, `recipe_evidence`, `log`.
 
 Raw private sources are never artifacts. If private data is read, it is in-process only; on-disk products are redacted or aggregate.
 
@@ -237,6 +247,7 @@ Result of running a suite against one `ReleaseTuple` (or corpus subject where ap
 Must include:
 
 - suite content hash, seed list, decode hash, subject tuple hash
+- applied `RecipeStack` hash when applicable
 - per-dimension aggregates listed in §7.4 (not a single blended “quality”)
 - `raw` and `guarded` channels when guards exist—both always populated for model serve paths
 - findings with severity
@@ -251,6 +262,7 @@ Must include:
 | `objective_id` | |
 | `mission_brief_ref` | Saved brief version that grounded the objective and decision |
 | `subject` | Candidate tuple and/or corpus artifact refs |
+| `recipe_stack_ref` | Exact applied `RecipeStack` ref + hash, when applicable |
 | `gate_results[]` | All cited results |
 | `intervention` | When `correct`: class `data` \| `mixture` \| `rubric` \| `hparam` \| `interface` \| `stop` plus machine-readable hint |
 | `human_requests[]` | When `ask_human`: inbox item specs |
@@ -299,6 +311,7 @@ Twin of every train checkpoint set. Required fields:
 - peak VRAM, wall time
 - teacher id (synth) and/or reference id (preference)
 - best checkpoint ref under gate callbacks if any
+- recipe stack hash and any recipe-specific adaptations
 
 ### 5.11 `MixtureSpec` / `TargetShape`
 
@@ -328,6 +341,44 @@ Include: input artifact hashes; keep/reject counts; **reject-reason histogram**;
 | `response_schema` | Structured answer spec |
 | `created_at` / `age` | |
 | `status` | `pending` \| `answered` \| `expired` |
+
+### 5.14 `Recipe` / `RecipeStack`
+
+A `Recipe` is a versioned, evidence-backed specification for creating a named behavioral effect in a model stack. It is not merely a research recommendation, prompt fragment, hyperparameter dump, or guarantee. Its ingredients may span data, training, prompt/interface, serving, and evaluation because facktry optimizes the released stack rather than weights in isolation.
+
+The canonical human-authored source is `<recipe-id>/RECIPE.md` under `docs/recipes/`. The facktry parses it into a `Recipe` artifact with a stable instruction hash over front matter and instructional sections, plus an append-only notes head/hash for the notes stream. A full source snapshot may also be registered for audit. A recipe source must declare:
+
+- stable id, version, title, status, target effect(s), and observable measures
+- scope and applicability: model families, domains, interfaces, prerequisites, and incompatibilities
+- mechanism: why the ingredients are expected to create the effect
+- ingredients: data/source classes and mixture constraints; training method/parent/reference and safe parameter ranges; interface/serving changes; evaluation suites and baselines
+- ordered governed procedure, adaptation knobs, tradeoffs, regressions, and failure signatures
+- evidence, tested configurations, curator, and provenance
+- an append-only `## Recipe Notes` section for subsequent uses
+
+A `RecipeProposal` returned by research is provisional evidence. It becomes a reusable `Recipe` only when curated into a reviewed `RECIPE.md`; research never silently edits the catalog.
+
+A `RecipeStack` is an immutable composition for one objective iteration or run. It records ordered recipe refs and hashes, resolved parameter overrides, ingredient allocation, compatibility/conflict decisions, and the validation plan. Stacks are selected under the Objective's `recipe_policy`, never by unconstrained concatenation. Every governed run and resulting `ReleaseTuple` records the exact stack hash.
+
+Recipes are active development memory, not a one-time preflight lookup. The operator should consult them before choosing an intervention, while planning a training run, when a human answers a judgment or redirects the mission, and after a result exposes a new failure or interaction. A recipe note may improve future retrieval or composition, but it never mutates a prior run or silently changes a frozen Objective.
+
+The compounding loop is:
+
+```text
+retrieve recipes + notes + defects
+  → reason with the human about target/tradeoffs
+  → recommend and compose a RecipeStack
+  → execute the ordinary governed training loop
+  → measure effect and regressions
+  → append success/failure use notes
+  → improve the next recommendation
+```
+
+The facktry learns here by improving intervention selection and model-development memory, not by treating unverified notes as model weights or as gates.
+
+Recipe notes are append-only institutional memory. A note records the date, run/objective, base and surrounding stack, adaptation, observed effect, regressions, evidence refs, recommendation, and confidence. Each note is separately hashed and advances the notes head; notes may inform future composition but cannot satisfy a gate by themselves. Changing recipe instructions creates a new recipe version; appending a note does not change the instruction hash or operational meaning of the prior version. Notes contain no secrets, raw private examples, or identifying data.
+
+Recipes and stacks cannot weaken Objective hard gates, bypass `govern`, `admit`, smoke training, sealed measurement, `decide`, or human promotion. The intended effect must be demonstrated by the ordinary paired evaluation path.
 
 ---
 
@@ -371,7 +422,7 @@ Requirements:
 - Filesystem run directories + sqlite (or equivalent) index is acceptable.
 - Content-hash every artifact at write; refuse register if hash mismatches bytes.
 - Atomic manifest writes.
-- Queries at minimum: get/list mission briefs and immutable versions; get/list runs by objective/status/stage; parents/children; latest passing `AdmissionReport` for objective; open defects; pending inbox; latest decision; active/frozen objectives; pinned production tuple; metrics tail for a run.
+- Queries at minimum: get/list mission briefs and immutable versions; get/list runs by objective/status/stage; parents/children; get/list/version recipes and append recipe notes; recommend recipes by target effect, objective, defects, and prior outcomes; get/list RecipeStacks; latest passing `AdmissionReport` for objective; open defects; pending inbox; latest decision; active/frozen objectives; pinned production tuple; metrics tail for a run.
 - **No agent-facing delete** of runs that are parents, pinned releases, or referenced by decisions, nor of MissionBrief versions referenced by objectives or experiments. Archival may exist as an explicit overseer operation outside the agent tool allowlist.  
 - Workspace discovery: `FACKTRY_HOME` if set, else walk cwd/parents for `.facktry/`, else create `.facktry/` in cwd per policy. Humans and agents must land on the same workspace without flag gymnastics.
 
@@ -385,6 +436,7 @@ Requirements:
 - Lint rules in §5.0–§5.1 are mandatory, including the saved MissionBrief and individual hard-gate approvals.
 - Supersede creates a new id; does not mutate the old record.
 - Expose “open objectives” for CLI auto-focus.
+- Validate any selected `RecipeStack` against `recipe_policy`, recipe hashes, applicability, conflicts, and budget before freeze or execution.
 
 ### 7.3 `admit`
 
@@ -618,6 +670,10 @@ Required operations (names may be bikesheded but capabilities may not):
 | `defects_list` / `defects_close` | Memory |
 | `yield_release` | Pin tuple after authorize |
 | `query_*` | Read models shared with CLI |
+| `list_recipes` / `show_recipe` | Discover curated effect recipes and their append-only notes |
+| `recommend_recipes` | Rank relevant recipes from target effects, objective constraints, open defects, notes, and prior outcomes; read-only proposal |
+| `compose_recipe_stack` | Resolve compatible recipe versions and overrides into an immutable stack; no mutation or gate bypass |
+| `append_recipe_note` | Append a structured subsequent-use note with run/evidence refs; never edits recipe instructions |
 
 `save_mission_brief` is the only blessed persistence path for the dossier. Each call creates a new immutable version, returns its ref and hash, and may not overwrite a prior version. The call is made once at the end of elicitation; a working draft remains session-scoped until then.
 
@@ -699,9 +755,29 @@ Core never imports a concrete domain’s rules. Packs register through an explic
 
 ### 7.16 Skills
 
-Short markdown playbooks under `skills/` teaching agents which `agent_api` calls implement common overseer intents (elicit, save a MissionBrief, freeze, admit, smoke, scale, measure, decide, canary). Skills are documentation loaded by operators/agents—not a second runtime and not a substitute for enforced `govern` checks.
+Short markdown playbooks under `docs/skills/` teaching agents which `agent_api` calls implement common overseer intents (elicit, save a MissionBrief, freeze, admit, smoke, scale, measure, decide, canary). Package-local copies may be shipped into the operator image. Skills are documentation loaded by operators/agents—not a second runtime and not a substitute for enforced `govern` checks.
 
 The canonical `elicit` skill defines the required brief outline and question/research handoff, but deliberately does not prescribe one fixed decision tree. The operator chooses follow-ups and research depth; `save_mission_brief` and `freeze_objective` enforce completeness and provenance.
+
+### 7.17 Recipes
+
+**Job:** preserve and reuse proven ways to create named effects without rediscovering their ingredients, tradeoffs, or proof plan.
+
+Recipes are not skills. A skill teaches the operator **how to use facktry**; a recipe specifies **how to create an effect in the model stack**. A recipe may be discovered by research, but research output is only a `RecipeProposal` until curated and reviewed.
+
+Requirements:
+
+- Load canonical `docs/recipes/<recipe-id>/RECIPE.md` files into a versioned, content-hashed catalog; `_template/RECIPE.md` is authoring guidance, not a recipe.
+- Require structured front matter and sections for effect, mechanism, data/training/interface/serving ingredients, procedure, compatibility, tradeoffs, validation, evidence, provenance, and `## Recipe Notes`.
+- Permit ingredients across data, weights, prompts, tool schemas, decoding, guards, and evaluation. Every ingredient must lower to existing governed operations; a recipe is not a second workflow engine.
+- Expose `list_recipes`, `show_recipe`, `recommend_recipes`, and `compose_recipe_stack`. `recommend_recipes` ranks candidates from the target effect, Objective constraints, open defects, recipe notes, and prior outcomes; it is a read-only proposal. Composition resolves exact versions, ordering, overrides, mixture allocation, conflicts, and validation suites into an immutable `RecipeStack`.
+- Validate recipe applicability and stack constraints against the frozen Objective, budget, interface pins, and domain pack. A stack may add proposed checks but may not remove or weaken Objective hard gates.
+- Record the exact stack hash on every affected run, `TrainCard`, candidate `ReleaseTuple`, scorecard/Decision dossier, and yielded release.
+- Encourage recipe retrieval before an intervention, during training/correction planning, and after human-inbox answers change the target or tradeoffs. Append a structured use note after the run has evidence, including failures and non-promotions.
+- Require ordinary admit → smoke → scale → paired sealed measure → decide flow. A recipe's claimed effect is not evidence until measured against pinned baselines.
+- Keep `## Recipe Notes` append-only. Each note records subsequent-use context, adaptation, observed effect, regressions, evidence refs, recommendation, and confidence. Notes inform future planning but cannot satisfy gates alone.
+- Treat instruction changes as new recipe versions. Appending notes must not silently alter the operational meaning of the referenced recipe version.
+- Reject secrets, raw private examples, and identifying data in recipe text or notes.
 
 ---
 
@@ -709,25 +785,26 @@ The canonical `elicit` skill defines the required brief outline and question/res
 
 Every experiment or objective run, including a data-only investigation, is preceded by a saved MissionBrief. Before an Objective is frozen, the operator completes the pre-loop elicitation below. Skipping it is a bug.
 
-0. **`elicit`** — adaptive questions and research between volleys; individual human approval of every proposed hard gate; save one complete immutable `MissionBrief` version at the end.  
+0. **`elicit`** — adaptive questions, research, and recipe retrieval between or during volleys; individual human approval of every proposed hard gate; save one complete immutable `MissionBrief` version at the end.
+0.5. **`compose_recipe_stack` (optional)** — after the brief exists and before freeze when the mission calls for a known effect; resolve recipe compatibility, surface material tradeoffs, and include the stack policy or pin in the Objective.
 
 After an objective is frozen, each autonomous iteration follows this order:
 
 1. **`govern.preflight`** — including GPU exclusivity and disk/path checks.  
 2. **`pin_suites`** — sealed (and dev) content hashes frozen for this iteration before new train corpus generation.  
-3. **Plan** — agent reads open defects + last decision (facktry provides query; planning reasoning is the agent’s).  
+3. **Plan** — agent reads open defects, last decision, and relevant recipe recommendations/notes (facktry provides retrieval; planning reasoning is the agent’s).
 4. **Data path** — construct/validate → generate or harvest → deterministic filter → label/stratify/mix as required → **`admit` after every persist** → `AdmissionReport`.  
-5. **`train_smoke`** — parent base/ancestor; mini sealed probe callbacks; smoke `Decision`.  
-6. **`train_scale`** — only if smoke Decision allows and govern passes; keep best gated checkpoint.  
+5. **`train_smoke`** — parent base/ancestor; mini sealed probe callbacks; smoke `Decision`; retrieve relevant recipe notes when interpreting early metrics or choosing a correction.
+6. **`train_scale`** — only if smoke Decision allows and govern passes; keep best gated checkpoint; recipe-guided adjustments remain new, governed runs.
 7. **`select_checkpoint`** — hard-constrained winner → candidate `ReleaseTuple`.  
 8. **`measure` / `compare`** — sealed + dev; base/ancestor/candidate/wrapper; raw and guarded; multi-turn if dialogue.  
 9. **`decide`** — dossier written.  
 10. **Branch:**  
-    - `correct` → record/update defects; **new runs only**; mutate data/rubric/hparams/interface under policy; no ancestor overwrite; no specialist self-distill by default.  
-    - `ask_human` → inbox items; agent waits or works elsewhere per policy; human answers via CLI; ingest; resume.  
+    - `correct` → retrieve relevant recipes and prior use notes; record/update defects; **new runs only**; mutate data/rubric/hparams/interface under policy; no ancestor overwrite; no specialist self-distill by default. Append the outcome to each used recipe after evidence exists.
+    - `ask_human` → inbox items; agent waits or works elsewhere per policy; human answers via CLI; ingest; resume. Reconsider recipe selection when the human clarifies the target, tradeoff, or hard gate; record the resulting use context.
     - `hold` / `abort` → dossier; stop mutation.  
     - `promote` → human final when `human_promote` (default true); `yield_release` pins tuple; optional canary.  
-11. **Yield** — pinned tuple + dossier + non-sensitive lesson export only.
+11. **Yield** — pinned tuple + dossier + non-sensitive lesson export only. Include the exact `RecipeStack` hash when a recipe was applied.
 
 **Data-only objectives** still require a saved MissionBrief and frozen Objective, then skip train/select/serve but still pin suites, admit, measure, decide.
 
@@ -748,6 +825,7 @@ Objectives may add gates. They may not remove the hard floors below when the cor
 ### 9.0 Mission / objective (hard)
 
 - Every objective and experiment, including data investigations, references a complete saved MissionBrief version/hash.
+- Any applied `RecipeStack` references existing, hash-verified recipe versions and satisfies the Objective's recipe policy; a stack cannot weaken an Objective hard gate.
 - Universal brief sections and any domain-pack-required sections are complete.
 - Every proposed hard gate has individual human approval recorded before freeze.
 - Research notes are proposal evidence and do not satisfy measured gates.
@@ -792,7 +870,7 @@ Preference margin/accuracy; style/diversity; calibrated judge scores; length vs 
 
 ### 9.5 Human
 
-Research fit; taste; borderline adjudication; final promote.
+Research fit; taste; borderline adjudication; recipe curation and material tradeoffs; final promote.
 
 ### 9.6 Diagnostic only (never sole promote/select basis)
 
@@ -802,7 +880,8 @@ Train CE; val CE alone; uncalibrated judge averages; unconditional distributiona
 
 ## 10. Human loop
 
-- Before freeze, `elicit` uses structured questions and research between volleys to assemble the MissionBrief.  
+- Before freeze, `elicit` uses structured questions and research between volleys to assemble the MissionBrief. The operator may retrieve recipe candidates when they clarify the desired effect or tradeoff.
+- During human-interactive reasoning, the operator should use the human's answers to refine recipe retrieval and stack composition rather than silently inventing a new intervention.
 - Human approval of proposed hard gates is collected individually during elicitation; it is not a measured gate result or a replacement for the inbox.  
 - `save_mission_brief` persists the complete dossier once at the end of elicitation; freeze requires its version/hash.  
 - Inbox items reference objective, gate, blinded payload, response schema.  
@@ -810,6 +889,7 @@ Train CE; val CE alone; uncalibrated judge averages; unconditional distributiona
 - Default `human_promote=true` for model deliverables.  
 - Live CLI shows inbox pressure always; `facktry inbox` is for working the queue.  
 - Agents may not mark human gates passed without an ingested response artifact.
+- After a governed attempt, the operator appends a structured recipe-use note for each applied recipe, including measured outcome or failure evidence; notes do not themselves pass gates.
 
 ---
 
@@ -824,6 +904,7 @@ Every run records at minimum:
 - output artifact hashes  
 - parent runs  
 - objective id + linked MissionBrief version/hash + suite hashes used in any Decision
+- applied `RecipeStack` ref/hash, recipe-specific adaptations, and any recipe-note refs used for planning
 - transformation policy + seeds for data jobs
 - teacher/reference identities for synth and preference  
 
@@ -915,7 +996,7 @@ Automated tests must cover:
 
 - No runtime dependency on prior experiment implementations or registries.  
 - No hardcoded voice, SMS, or host GPU index policy in core.  
-- No dependency on this chat transcript—only this ADR, `IMPLEMENTATION_CHECKLIST.md`, `skills/`, and the repo.
+- No dependency on this chat transcript—only this ADR, `IMPLEMENTATION_CHECKLIST.md`, `docs/skills/`, `docs/recipes/`, and the repo.
 
 ### 13.6 Progress file discipline
 
@@ -935,17 +1016,18 @@ Facktry is complete for its stated purpose when all of the following hold:
 3. Hard gates are machine-enforced; soft gates cannot promote alone; diagnostic metrics cannot select.  
 4. Sealed measure is blind to the planner; paired compares include base/ancestor/candidate as applicable.  
 5. The system stops for human-only judgments via inbox; CLI surfaces pressure.  
-6. A successful model objective yields a pinned `ReleaseTuple` + dossier with reproducible hashed evidence.  
-7. A human typing only `facktry` during active work sees objective, loop phase, active run, failing gates, defects, and inbox without passing run ids or registry paths.  
-8. Ancestor weights and prior pins remain hash-unchanged after corrective trains.  
-9. The test categories in §13.3 pass.
-10. Every objective and experiment, including data investigations, can be traced back to the immutable MissionBrief version containing the user’s intent, success case, research pointers, and hard-gate approvals.
+6. A successful model objective yields a pinned `ReleaseTuple` + dossier with reproducible hashed evidence.
+7. A human typing only `facktry` during active work sees objective, loop phase, active run, failing gates, defects, and inbox without passing run ids or registry paths.
+8. Curated recipes can be discovered, composed into a hashed `RecipeStack`, evaluated through the normal governed loop, and extended with append-only subsequent-use notes.
+9. Ancestor weights and prior pins remain hash-unchanged after corrective trains.
+10. The test categories in §13.3 pass.
+11. Every objective and experiment, including data investigations, can be traced back to the immutable MissionBrief version containing the user’s intent, success case, research pointers, and hard-gate approvals.
 
 ---
 
 ## 15. Consequences
 
-**Positive:** Closed autonomy loop; objective measurement; model-out as first-class product; agent-native mutation; human-native monitor; domain extensibility without core rot; private-data discipline; anti-self-distillation defaults.
+**Positive:** Closed autonomy loop; objective measurement; model-out as first-class product; agent-native mutation; human-native monitor; compounding recipe memory that makes intervention selection improve over time; domain extensibility without core rot; private-data discipline; anti-self-distillation defaults.
 
 **Negative:** Sealed custody, interface locking, and fail-closed govern add real implementation work. Agents cannot “just train.” Humans must freeze gates carefully or the loop will correctly optimize the wrong contract. Monitor layout is opinionated.
 
@@ -957,7 +1039,7 @@ Facktry is complete for its stated purpose when all of the following hold:
 
 | Operator intent | Modules |
 |---|---|
-| Understand and specify mission | `elicit`, `questions`, `research`, `save_mission_brief` |
+| Understand and specify mission | `elicit`, `questions`, `research`, `recommend_recipes`, `save_mission_brief` |
 | Freeze mission | `objective`, `govern` |
 | Harvest/filter/stratify data | domain stages, `admit`, `play` |
 | Words in, model out | `train`, `select`, `suite.compare`, `decide`, `serve` |
@@ -965,6 +1047,8 @@ Facktry is complete for its stated purpose when all of the following hold:
 | Human evals that cannot be automated | `decide` → inbox; `watch` inbox |
 | “What is it doing?” | `watch` via bare `facktry` |
 | Anti self-distillation | `train` parent pins, `admit` teacher pins |
+| Reuse a proven behavioral effect | Curated `Recipe`, `recommend_recipes`, `RecipeStack`, governed application, paired measure, append-only recipe notes |
+| Compound model-development knowledge | Recipe retrieval during planning/correction/human reasoning; measured outcomes feed later recommendations |
 | Hidden-context / grounding | `admit` attribution, `verify` oracles |
 | Privacy-safe artifacts | `store`/`admit` source classes |
 | Pref style without tanking facts | preference contract + full re-measure |

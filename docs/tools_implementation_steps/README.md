@@ -28,7 +28,7 @@ Harness modules (`store`, `admit`, `train`, `agent_api`, …) live on the ADR tr
 - **Interactive UI:** `ctx.ui.custom()` + `@earendil-works/pi-tui` (`Editor`, `Key`, `matchesKey`, theme helpers). `executionMode: "sequential"` when the tool blocks on human input.
 - **Non-TUI:** refuse clearly (`mode !== "tui"`); never hang headless runs waiting for a human.
 - **Results:** always return model-facing `content[]` text **and** structured `details` for renderers/tests.
-- **No harness bypass:** `questions` does not freeze objectives, save MissionBriefs, admit data, or train. The `elicit` skill collects answers and research context, then calls `save_mission_brief` once at the end. Research tools return **proposals**, not passed gates; the MissionBrief stores only brief summaries plus references.
+- **No harness bypass:** `questions` does not freeze objectives, save MissionBriefs, admit data, or train. The `elicit` skill collects answers and research context, then calls `save_mission_brief` once at the end. Research tools return **proposals**, not passed gates or curated recipes; the MissionBrief stores only brief summaries plus references.
 - **Long-running tools:** research-style workers must support abort, progress logs, and headless execution (no TUI required unless the tool is explicitly human I/O).
 
 ## Phase index

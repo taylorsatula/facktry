@@ -23,7 +23,7 @@ Facktry owns only:
 - the launcher;
 - a **closed `ResourceLoader`**;
 - the Facktry system prompt;
-- Facktry tools and skills;
+- Facktry tools, skills, and the curated recipe catalog;
 - the operator session location;
 - the Python `agent_api` bridge;
 - the isolated research subagent.
@@ -44,6 +44,7 @@ Facktry should construct a closed loader that exposes only Facktry resources:
 Facktry prompt
 Facktry tools
 Facktry skills
+Facktry recipes and recipe notes
 Facktry research agent
 No ambient user extensions
 No project extensions by default
@@ -64,7 +65,8 @@ facktry-pi/
     tools/
   prompts/SYSTEM.md
   agents/research.md
-  skills/
+  skills/                  # mirror of canonical docs/skills/
+  recipes/                 # recipe catalog/index
   tests/
 ```
 

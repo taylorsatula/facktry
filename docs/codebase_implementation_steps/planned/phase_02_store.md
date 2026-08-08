@@ -24,6 +24,9 @@ Durable, queryable, hash-verified truth for runs, artifacts, objectives, decisio
   artifacts/<sha256[:2]>/<sha256>   # content-addressed artifact bytes
   mission_briefs/<brief_id>/v<version>.json  # immutable saved dossiers
   objectives/<objective_id>.json    # frozen bytes (phase 03 writes these; store provides paths)
+  recipes/<recipe_id>/              # parsed recipe instruction artifacts/index refs
+  recipe_stacks/<stack_hash>.json   # immutable compositions
+  recipe_notes/<recipe_id>.jsonl    # append-only subsequent-use notes
   decisions/<decision_id>.json
   defects.jsonl          # append-only defect events
   inbox/<item_id>.json
@@ -36,7 +39,7 @@ Durable, queryable, hash-verified truth for runs, artifacts, objectives, decisio
 - `create_run(...)` / `update_run_status(...)` / manifest writes atomic (write temp + `os.replace`).
 - Metrics: `append_metric(run_id, dict)` appends one JSON line; `tail_metrics(run_id, n)` safe for concurrent tail (append-only, read by line).
 - sqlite index (WAL): tables for mission briefs (brief_id, version, hash, parent_version, objective_ref, created_at), runs (objective_id, mission_brief_hash, status, stage, created_at), artifacts, lineage edges (parent → child + relation), decisions, inbox, pins. Index is a *query cache*: manifests on disk are the truth; provide `rebuild_index()`.
-- Queries (exact list from ADR §7.1): mission briefs and immutable versions; runs by objective/status/stage; parents/children; latest **passing** AdmissionReport for objective; open defects; pending inbox; latest decision; active/frozen objectives; pinned production tuple; metrics tail.
+- Queries (exact list from ADR §7.1): mission briefs and immutable versions; runs by objective/status/stage; parents/children; recipes and immutable instruction versions; recipe notes; ranked recipe recommendations by target/objective/defects/prior outcomes; immutable RecipeStacks; latest **passing** AdmissionReport for objective; open defects; pending inbox; latest decision; active/frozen objectives; pinned production tuple; metrics tail.
 - Deletion policy: `delete_run` exists but raises `StoreError` for protected runs (has children, is a pinned release subject, or is referenced by any decision). MissionBrief versions referenced by an Objective or experiment are never agent-deletable. No agent-facing delete API beyond this guarded one — archival is an overseer filesystem operation, not a store feature.
 
 ## Out of scope
@@ -50,6 +53,7 @@ Durable, queryable, hash-verified truth for runs, artifacts, objectives, decisio
 - Atomic manifest writes: kill -9 mid-write must never leave a truncated `manifest.json` (temp+rename; test by simulating).
 - Concurrent readers (one process appending metrics, another tailing + querying sqlite) must not error or corrupt. WAL mode, short write transactions.
 - Lineage is append-only: adding a parent edge to a completed run's ancestry is fine; rewriting existing edges is not.
+- Recipe instruction artifacts are immutable. Notes append as separately hashed events; appending a note never changes the referenced instruction hash. Recommendation results are derived read models, not new recipe instructions.
 
 ## Tests
 
@@ -57,7 +61,8 @@ Durable, queryable, hash-verified truth for runs, artifacts, objectives, decisio
 - `private_raw` role refused on register (partially satisfies checklist §18 "private raw bytes refused on artifact write paths" — admit phase adds the row-level path).
 - MissionBrief save creates an immutable version/hash and never overwrites a prior version; failed save leaves no index entry or partial dossier.
 - Atomic manifest: no partial manifests after simulated crash (write hook that raises mid-write).
-- All §7.1 queries against a seeded fixture store.
+- All §7.1 queries against a seeded fixture store, including recipe lookup/recommendation and RecipeStack reads.
+- Recipe note append advances the notes head while preserving the instruction hash; attempts to rewrite prior notes are refused.
 - Protected-run delete refused; unprotected delete ok.
 - Concurrent metric appender + tailer + sqlite reader threads/processes: no corruption.
 
