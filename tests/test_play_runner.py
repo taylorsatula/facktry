@@ -21,6 +21,17 @@ def test_toy_world_protocol_is_deterministic_and_versioned():
     assert transcript["transcript_schema_version"]
 
 
+def test_shipped_toy_worlds_are_public_deterministic_protocol_fixtures():
+    from facktry.play import validate_world
+    from facktry.play.testing import CounterWorld as ShippedCounterWorld, EchoWorld
+
+    for world in (ShippedCounterWorld(), EchoWorld()):
+        validate_world(world)
+        assert world.reset(7, {}) == world.reset(7, {})
+        transcript = world.export_transcript()
+        assert transcript["transcript_schema_version"]
+
+
 def test_runner_enforces_hard_turn_cap_on_never_stopping_subject():
     from facktry.play import run_episode
 

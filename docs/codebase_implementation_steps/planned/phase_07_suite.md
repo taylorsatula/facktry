@@ -30,7 +30,7 @@ Implement frozen, content-hashed suites with sealed custody, pinned execution, a
 
 ### Sealed custody boundary (ADR doctrine 8 — the critical part)
 - Sealed case text/private state is stored only in `suites/.../sealed/` payloads readable by the **runner**, and the planner-facing API (`run_suite`, `compare`, all `query_*` surfaces) returns only scorecards/aggregates/gate results.
-- Custody mechanism: sealed execution happens through a `SealedRunner` object constructed with the suite payload; the planner-visible functions never receive or return case text — they receive a runner handle. Module-level API audit: no public function in `facktry.suite` (and later `facktry.agent_api`) returns `SuiteCase` objects for `seal` split — only counts, hashes, aggregates.
+- Custody mechanism: sealed execution happens through a `SealedRunner` object constructed internally with the suite payload. Planner-facing functions receive suite refs and return only scorecards/aggregates/gate results; they never receive or return sealed case text. Module-level API audit: no public function in `facktry.suite` (and later `facktry.agent_api`) returns `SuiteCase` objects for `seal` split — only counts, hashes, aggregates.
 - Test must *prove* blindness: enumerate the planner-facing API surface and assert sealed case stems/private state/transcripts appear in no return value.
 
 ### `compare(store, suite_ref, tuples: dict[str, ReleaseTuple], backend_factory, margins) -> CompareReport`

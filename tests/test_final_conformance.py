@@ -2,6 +2,10 @@
 
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.conformance
+
 
 def test_mandatory_conformance_categories_have_executable_test_modules():
     tests = Path(__file__).resolve().parent
@@ -9,21 +13,11 @@ def test_mandatory_conformance_categories_have_executable_test_modules():
         "test_admit_structure_leakage.py", "test_admit_teacher_privacy.py", "test_verify_oracles.py",
         "test_train_facade.py", "test_select.py", "test_decide_aggregation.py", "test_suite_custody_compare.py",
         "test_suite_pin.py", "test_preference_pairs.py", "test_govern_gates.py", "test_agent_api_inbox_release.py",
-        "test_watch_focus.py", "test_recipe_catalog.py", "test_recipe_composition.py", "test_control_loop_e2e.py",
-        "test_domain_packs.py", "test_serve_canary_rollback.py",
+        "test_agent_api_contract.py", "test_watch_focus.py", "test_watch_commands.py", "test_recipe_catalog.py", "test_recipe_composition.py", "test_control_loop_e2e.py",
+        "test_domain_packs.py", "test_serve_canary_rollback.py", "test_serve_http.py",
     }
     missing = sorted(name for name in required if not (tests / name).is_file())
     assert not missing
-
-
-def test_core_has_no_reference_repo_dependency_or_concrete_domain_imports():
-    root = Path(__file__).resolve().parents[1] / "facktry"
-    offenders = []
-    for path in root.rglob("*.py"):
-        text = path.read_text(errors="ignore")
-        if "reference_repos" in text or "phase17_samples" in text or "FixtureDomain" in text:
-            offenders.append(str(path))
-    assert not offenders
 
 
 def test_recipe_sources_contain_no_private_markers_or_workflow_implementation():

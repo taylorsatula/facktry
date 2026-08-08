@@ -64,3 +64,11 @@ def test_human_promote_default_routes_final_success_to_ask_human(tmp_path, monke
     store = frozen_store(tmp_path, monkeypatch)
     decision = decide_with(store, [objective_gate()])
     assert decision.action.value == "ask_human"
+
+
+def test_decide_repeated_calls_with_identical_evidence_are_content_deterministic(tmp_path, monkeypatch):
+    store = frozen_store(tmp_path, monkeypatch)
+    gates = [objective_gate(severity="soft", passed=False)]
+    first = decide_with(store, gates)
+    second = decide_with(store, gates)
+    assert first.to_dict() == second.to_dict()

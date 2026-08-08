@@ -3,6 +3,10 @@
 import multiprocessing
 import sqlite3
 
+import pytest
+
+pytestmark = [pytest.mark.store, pytest.mark.slow]
+
 
 def test_store_uses_wal_and_survives_concurrent_metric_readers(store_factory):
     store = store_factory()

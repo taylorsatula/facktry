@@ -100,7 +100,9 @@ def write_recipe(root, content=VALID_RECIPE, recipe_id="grounded-responses"):
 
 
 class FixtureDomain:
-    name = "fixture"
+    def __init__(self, name="fixture"):
+        self.name = name
+
     elicitation_branches = {"default": ["success_case"]}
     required_brief_sections = ["success_case"]
     schemas = {"label": ["a", "b"]}

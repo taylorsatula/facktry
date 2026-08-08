@@ -1,9 +1,11 @@
 """Phase 10 red tests: common CLI invocations share the live monitor."""
 
 import subprocess
+import sys
 
 import pytest
-import sys
+
+pytestmark = [pytest.mark.cli, pytest.mark.integration, pytest.mark.slow]
 
 
 @pytest.mark.parametrize("args", [(), ("cli",), ("watch",)])

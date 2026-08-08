@@ -5,14 +5,6 @@ import copy
 from core_samples import HASH, payloads
 
 
-def test_release_tuple_round_trip_preserves_recipe_stack():
-    from facktry import types
-
-    tuple_ = types.ReleaseTuple.from_dict(payloads()["ReleaseTuple"])
-    assert tuple_.to_dict() == payloads()["ReleaseTuple"]
-    assert tuple_.recipe_stack is not None
-
-
 def test_tuple_hash_changes_for_each_component():
     from facktry import types
 

@@ -1,10 +1,8 @@
 """Phase 07 red tests: sealed blindness and paired comparison."""
 
-import copy
-
 import pytest
 
-from core_samples import HASH, payloads
+from core_samples import payloads
 from suite_registry import suite_data
 
 
@@ -44,6 +42,22 @@ def test_compare_emits_paired_deltas_slices_and_margin_verdicts(tmp_path, monkey
     assert report.paired_deltas
     assert report.slices
     assert report.margin_verdicts
+
+
+def test_compare_requires_base_and_candidate(tmp_path, monkeypatch):
+    monkeypatch.setenv("FACKTRY_HOME", str(tmp_path))
+    from facktry import suite, types
+    from facktry.errors import SuiteError
+    from facktry.store import Store
+    from facktry.workspace import resolve_workspace
+
+    store = Store(resolve_workspace())
+    value = suite.Suite.from_dict(suite_data())
+    store.register_suite(value)
+    subject = types.ReleaseTuple.from_dict(payloads()["ReleaseTuple"])
+    for tuples in ({"candidate": subject}, {"base": subject}):
+        with pytest.raises(SuiteError, match="base|candidate"):
+            suite.compare(store, (value.id, value.content_hash()), tuples, lambda _: NeverStops(), {"correctness": 0.0})
 
 
 def test_multiturn_runner_hard_caps_backend_that_never_stops(tmp_path, monkeypatch):

@@ -2,6 +2,10 @@
 
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.conformance
+
 
 SKILLS = [
     "operating-facktry", "elicit-mission", "freeze-objective", "preflight", "pin-suites",

@@ -3,16 +3,6 @@
 from core_samples import payloads
 
 
-def test_recipe_round_trip_preserves_instruction_and_note_identity():
-    from facktry import types
-
-    recipe = types.Recipe.from_dict(payloads()["Recipe"])
-    restored = types.Recipe.from_dict(recipe.to_dict())
-    assert restored == recipe
-    assert restored.instruction_hash == recipe.instruction_hash
-    assert restored.notes_head == recipe.notes_head
-
-
 def test_recipe_stack_hash_is_sensitive_to_order_and_overrides():
     from facktry import types
 

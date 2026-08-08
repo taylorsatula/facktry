@@ -58,6 +58,25 @@ def test_idempotent_repeat(tmp_path, monkeypatch):
     assert (ws1.root / "sentinel.txt").read_text() == "preserve-me"
 
 
+def test_concurrent_workspace_creation_does_not_clobber(tmp_path):
+    home = tmp_path / "concurrent-home"
+    home.mkdir()
+    sentinel = home / "sentinel.txt"
+    sentinel.write_text("preserve-me")
+    script = "from facktry.workspace import resolve_workspace; print(resolve_workspace().root)"
+    env = {**os.environ, "FACKTRY_HOME": str(home)}
+    processes = [
+        subprocess.Popen([sys.executable, "-c", script], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        for _ in range(4)
+    ]
+    outputs = [process.communicate(timeout=15) for process in processes]
+    assert all(process.returncode == 0 for process in processes), outputs
+    assert {stdout.strip() for stdout, _ in outputs} == {str(home)}
+    assert sentinel.read_text() == "preserve-me"
+    assert (home / "runs").is_dir()
+    assert (home / "artifacts").is_dir()
+
+
 def test_standard_subpaths(tmp_path, monkeypatch):
     monkeypatch.setenv("FACKTRY_HOME", str(tmp_path))
     ws = resolve()

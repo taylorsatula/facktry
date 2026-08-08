@@ -2,6 +2,8 @@
 
 import pytest
 
+pytestmark = [pytest.mark.e2e, pytest.mark.integration]
+
 from api_support import api_for
 from core_samples import payloads
 from objective_samples import brief_payload, objective_payload
@@ -17,22 +19,25 @@ def test_control_loop_requires_ordered_governed_transitions_and_yields_pinned_re
     objective = types.Objective.from_dict(objective_payload({"mission_brief": {"id": brief.id, "version": brief.version, "brief_hash": brief.brief_hash}}))
     assert api.freeze_objective(objective).ok
     assert api.preflight(objective.id).ok
-    assert api.pin_suites(objective.id).ok
+    assert api.pin_suites(objective.id, ["suite-dev", "suite-seal"]).ok
     assert api.generate_and_admit(objective.id, {"rows": [{"text": "synthetic"}]}).ok
-    smoke = api.train_smoke(objective.id)
+    smoke = api.train_smoke(objective.id, {})
     assert smoke.ok
-    assert api.decide(smoke.data["decision_id"], action="scale").ok
-    assert api.train_scale(objective.id).ok
-    selected = api.select_checkpoint(objective.id)
+    assert api.decide(objective.id).ok
+    assert api.train_scale(objective.id, {}).ok
+    selected = api.select_checkpoint(objective.id, {})
     assert selected.ok
-    measured = api.measure_and_compare(objective.id, selected.data["candidate_ref"])
+    candidate_ref = selected.data["candidate_ref"]
+    measured = api.measure(objective.id, {"candidate_ref": candidate_ref})
     assert measured.ok
-    decision = api.decide(measured.data["decision_id"], action="ask_human")
+    compared = api.compare(objective.id, {"candidate_ref": candidate_ref})
+    assert compared.ok
+    decision = api.decide(objective.id)
     assert decision.ok
-    inbox = api.query_inbox().data
+    inbox = api.inbox_list().data
     assert inbox
-    assert api.ingest_inbox(inbox[0]["id"], {"answer": "promote"}).ok
-    release = api.yield_release(objective.id, selected.data["candidate_ref"])
+    assert api.inbox_ingest(inbox[0]["id"], {"answer": "promote"}).ok
+    release = api.yield_release(objective.id, candidate_ref, human_request_id=inbox[0]["id"])
     assert release.ok
     assert release.data["pinned"] is True
     assert release.data["dossier_hash"]
@@ -42,9 +47,10 @@ def test_control_loop_denies_out_of_order_or_missing_brief(tmp_path, monkeypatch
     api, _ = api_for(tmp_path, monkeypatch)
     from facktry.errors import GovernDenial
 
-    result = api.train_scale("objective-without-brief")
-    assert not result.ok
-    assert "brief" in result.error["reason"].lower() or "smoke" in result.error["reason"].lower()
+    result = api.train_scale("objective-without-brief", {})
+    assert result.error["type"] == "GovernDenial.MissionBriefRequired"
+    assert result.error["reason"] == "mission_brief_required"
+    assert result.error["details"]["objective_id"] == "objective-without-brief"
     with pytest.raises(GovernDenial):
         api.require_mission_brief("objective-without-brief")
 

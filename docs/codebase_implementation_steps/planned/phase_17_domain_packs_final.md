@@ -52,7 +52,7 @@ Verify each ADR §14 success criterion and record evidence:
 Also sweep ADR §12 (out of scope): confirm none of the excluded subsystems crept into core. Confirm recipes remain declarative effect specifications, not an ungoverned workflow engine.
 
 ### End-to-end loop test
-`tests/test_control_loop_e2e.py`: elicit fixture → save MissionBrief → freeze objective (fake suites/backends) → preflight → pin_suites → generate_and_admit → train_smoke → decide(allows scale) → train_scale → select_checkpoint → measure/compare (base/candidate) → decide → human promote via inbox ingest → yield_release. Assert: every transition governed (attempt freeze/experiment without a brief or out-of-order step → typed denial), all artifacts hash-registered, dossier exists, ancestors unchanged, final tuple pinned.
+`tests/test_control_loop_e2e.py`: elicit fixture → save MissionBrief → freeze objective (fake suites/backends) → preflight → pin_suites → generate_and_admit → train_smoke → decide from evidence (enables governed scale) → train_scale → select_checkpoint → separate measure and compare (base/candidate) → decide → human promote through a pending inbox item via `inbox_ingest` → yield_release. Assert: every transition governed (attempt freeze/experiment without a brief or out-of-order step → typed denial), all artifacts hash-registered, dossier exists, ancestors unchanged, final tuple pinned.
 
 ## Fail-closed requirements
 

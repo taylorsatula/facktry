@@ -14,7 +14,7 @@ Load and serve a full `ReleaseTuple` with versioned guards, raw/guarded channels
 ## In scope (`facktry/serve/`)
 
 ### Loading
-- `load_tuple(store, tuple_hash) -> LoadedTuple`: resolves and hash-verifies **all eight components** (base weights ref, adapter, tokenizer, chat template, prompt policy, tool schema, decode, guards). Production paths **refuse partial loads** — any missing/mismatched component → typed refusal. Model execution goes through the same `ModelBackend` protocol as suites (a `LocalLlamaBackend`/HTTP backend plugs in; tests use fakes).
+- `load_tuple(store, tuple_hash) -> LoadedTuple`: resolves and hash-verifies every non-null serving component (base weights ref, optional adapter, tokenizer, chat template, prompt policy, tool schema, decode, guards). An unadapted tuple has `adapter: None` and is valid; when an adapter is present it must resolve and verify. Production paths **refuse partial loads** — any missing/mismatched required component → typed refusal. The `recipe_stack` field is provenance carried by the tuple, not an independently loaded serving component. Model execution goes through the same `ModelBackend` protocol as suites (a `LocalLlamaBackend`/HTTP backend plugs in; tests use fakes).
 
 ### Guards (policy as data)
 - Guard policy document (hash-pinned, referenced by the tuple): ordered guard chain from the verify/patterns vocabulary — unsupported-action, claim≠execute, PII/canary, repetition, mode-leak, schema validate — each with action (`block|rewrite|fallback`) and config.
@@ -31,7 +31,7 @@ Load and serve a full `ReleaseTuple` with versioned guards, raw/guarded channels
 - `rollback(store)`: **one call** restores the previous pinned tuple (pin history is append-only). 
 
 ### Service lifecycle
-- A lightweight in-process HTTP service (stdlib `http.server` is acceptable; no framework dependency) exposing `/generate` (raw+guarded), `/health`. Preflight GPU-exclusivity rules apply when collocating with training on real deployments.
+- `start_http_service(store, tuple_hash, backend, host="127.0.0.1", port=0) -> RunningService`: context-managed lightweight in-process HTTP service. `RunningService.url` is the bound base URL; `GET /health` returns `{ok, tuple_hash}` and `POST /generate` returns raw/guarded response records plus the guard report. Preflight GPU-exclusivity rules apply when collocating with training on real deployments.
 
 ## Out of scope
 
@@ -51,6 +51,7 @@ Load and serve a full `ReleaseTuple` with versioned guards, raw/guarded channels
 - Canary: paired probe report compares candidate vs production on identical probes.
 - Flip refused without decision; allowed with; pin updated atomically.
 - **Rollback restores previous pinned tuple** (§18 row): pin A → flip B → rollback → pin A again, verified by hash.
+- HTTP lifecycle: `/health` identifies the loaded tuple and `/generate` emits raw + guarded records and guard report.
 - Quiet logging: private sentinel text in a request never appears in logs (summaries/hashes only).
 
 ## Checklist updates

@@ -14,6 +14,8 @@ def test_every_core_type_round_trips_without_loss(type_name):
     restored = cls.from_dict(original.to_dict())
     assert restored == original
     assert restored.to_dict() == original.to_dict()
+    if type_name == "ReleaseTuple":
+        assert restored.recipe_stack is not None
 
 
 def test_mission_brief_preserves_immutable_version_provenance():

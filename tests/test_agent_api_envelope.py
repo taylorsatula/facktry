@@ -1,7 +1,5 @@
 """Phase 09 red tests: structured facade results and governed provenance."""
 
-import pytest
-
 from api_support import api_for
 from objective_samples import brief_payload, objective_payload
 
@@ -22,8 +20,9 @@ def test_success_and_denial_results_use_api_envelope(tmp_path, monkeypatch):
     assert success.ok
     denial = api.freeze_objective(types.Objective.from_dict(objective_payload({"mission_brief": {"id": "missing", "version": 1, "brief_hash": "b" * 64}})))
     assert_envelope(denial)
-    assert not denial.ok
-    assert denial.error["type"].startswith("Objective") or denial.error["type"].startswith("GovernDenial")
+    assert denial.error["type"] == "GovernDenial.MissionBriefRequired"
+    assert denial.error["reason"] == "mission_brief_required"
+    assert denial.error["details"]["objective_id"] == objective_payload()["id"]
 
 
 def test_experiment_without_matching_brief_returns_typed_error(tmp_path, monkeypatch):
@@ -35,8 +34,9 @@ def test_experiment_without_matching_brief_returns_typed_error(tmp_path, monkeyp
     store.save_objective(types.Objective.from_dict(objective_payload()))
     result = AgentAPI(store).run_stage("unregistered", "objective-valid", {"stage": "admit"})
     assert_envelope(result)
-    assert not result.ok
-    assert "MissionBrief" in result.error["type"] or "mission" in result.error["reason"].lower()
+    assert result.error["type"] == "GovernDenial.MissionBriefRequired"
+    assert result.error["reason"] == "mission_brief_required"
+    assert result.error["details"]["objective_id"] == "objective-valid"
 
 
 def test_query_surface_returns_structured_read_results(tmp_path, monkeypatch):

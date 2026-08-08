@@ -56,6 +56,16 @@ def test_execution_oracle_uses_injected_executor_and_reports_missing_configurati
     assert not [f for f in passing if f.oracle == "execution"]
 
 
+def test_oracle_without_required_context_emits_configuration_finding():
+    from facktry.verify import run_oracles
+
+    findings = run_oracles({"action": "set_color", "color": "blue"}, context(verified_state=None), ["state_transition"])
+    assert len(findings) == 1
+    assert findings[0].oracle == "state_transition"
+    assert findings[0].kind == "configuration"
+    assert findings[0].message == "verified_state is required"
+
+
 def test_oracles_are_deterministic_and_findings_map_to_gate_severity():
     from facktry.verify import findings_to_gate_results, run_oracles
 

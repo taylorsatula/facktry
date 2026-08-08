@@ -1,13 +1,11 @@
 """Phase 09 red tests: govern coverage and unavailable backends."""
 
-import pytest
-
 from api_support import api_for
 from core_samples import payloads
 from objective_samples import objective_payload
 
 
-def test_deny_all_policy_refuses_every_mutating_agent_operation(tmp_path, monkeypatch):
+def test_deny_all_policy_refuses_every_capability_bearing_execution_operation(tmp_path, monkeypatch):
     api, store = api_for(tmp_path, monkeypatch, {"policy": {"capabilities": {}}})
     store.set_workspace_policy({"default": "deny"})
     calls = [
@@ -25,22 +23,23 @@ def test_deny_all_policy_refuses_every_mutating_agent_operation(tmp_path, monkey
     ]
     for name, args in calls:
         result = getattr(api, name)(*args)
-        assert not result.ok, name
-        assert result.error["type"].startswith(("GovernDenial", "Policy", "MissionBrief", "Suite", "Smoke")), name
+        assert result.error["type"] == "GovernDenial.PolicyDenied", name
+        assert result.error["reason"] == "capability_denied", name
+        assert result.error["details"]["operation"] == name, name
 
 
 def test_train_smoke_without_backend_is_typed_denial(tmp_path, monkeypatch):
     api, _ = api_for(tmp_path, monkeypatch)
     result = api.train_smoke("objective-valid", {})
-    assert not result.ok
-    assert "backend" in result.error["reason"].lower()
+    assert result.error["type"] == "NoTrainBackend"
+    assert result.error["reason"] == "no_train_backend"
 
 
 def test_train_scale_without_passing_smoke_is_typed_denial(tmp_path, monkeypatch):
     api, _ = api_for(tmp_path, monkeypatch)
     result = api.train_scale("objective-valid", {})
-    assert not result.ok
-    assert "smoke" in result.error["reason"].lower()
+    assert result.error["type"] == "GovernDenial.SmokeGateUnsatisfied"
+    assert result.error["reason"] == "smoke_gate_unsatisfied"
 
 
 def test_recipe_operations_preserve_instruction_and_stack_hashes(tmp_path, monkeypatch):

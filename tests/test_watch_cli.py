@@ -3,6 +3,10 @@
 import subprocess
 import sys
 
+import pytest
+
+pytestmark = [pytest.mark.cli, pytest.mark.integration, pytest.mark.slow]
+
 
 def run_status(home, *args):
     return subprocess.run([sys.executable, "-m", "facktry.cli.main", "status", "--once", "--home", str(home), *args], capture_output=True, text=True)

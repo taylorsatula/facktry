@@ -42,7 +42,7 @@ Candidates considered, gate matrix (checkpoint × hard/soft gate, observed/thres
 ## Tests
 
 - **Select does not pick last step when hard probes prefer earlier** (§18 row): fixture where last step has best loss but fails a hard probe; earlier checkpoint passes → earlier wins.
-- Soft-objective maximization among hard-passing candidates; deterministic tie-break.
+- Soft-objective maximization among hard-passing candidates; missing hard-gate evidence excludes a checkpoint; deterministic tie-break.
 - Refusal when soft objectives absent or loss-only.
 - Gate matrix artifact: all candidates × gates present, rationale string names the deciding objectives.
 - `build_candidate_tuple`: adapter swapped, interface components hash-identical to pins, `tuple_hash` correct; `compat_check` candidate-vs-base passes with `allowed_diffs={"adapter"}`.

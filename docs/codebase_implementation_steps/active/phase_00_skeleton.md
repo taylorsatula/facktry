@@ -35,7 +35,7 @@ Create the installable `facktry` package, pytest scaffold, and shared workspace 
 ## Tests
 
 - `import facktry` works; `facktry.__version__` is a string.
-- Workspace resolution: `FACKTRY_HOME` wins; parent-walk finds an ancestor `.facktry/`; fallback creates `.facktry/` in cwd; repeated calls don't error.
+- Workspace resolution: `FACKTRY_HOME` wins; parent-walk finds an ancestor `.facktry/`; fallback creates `.facktry/`; repeated calls don't error; concurrent process creation preserves existing files and converges on one workspace.
 - Static guard test: no source file under `facktry/` imports from `reference_repos/` (scan with pathlib — cheap, permanent regression guard for ADR §13.5).
 
 ## Checklist updates

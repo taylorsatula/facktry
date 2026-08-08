@@ -5,8 +5,13 @@ import pytest
 from phase17_samples import VALID_RECIPE, write_recipe
 
 
-def _second_recipe(root):
-    content = VALID_RECIPE.replace("grounded-responses", "replay-grounding").replace("Grounded responses", "Replay grounding")
+def _second_recipe(root, *, conflicts="[]", interfaces="[chat]"):
+    content = (
+        VALID_RECIPE.replace("grounded-responses", "replay-grounding")
+        .replace("Grounded responses", "Replay grounding")
+        .replace("conflicts: []", f"conflicts: {conflicts}")
+        .replace("interfaces: [chat]", f"interfaces: {interfaces}")
+    )
     return write_recipe(root, content, "replay-grounding")
 
 
@@ -36,26 +41,35 @@ def test_compatible_stack_records_exact_versions_order_overrides_allocation_and_
         objective={"constraints": ["task floor"], "hard_gates": ["task floor"]},
         overrides={"replay-grounding": {"allocation": 0.2}},
         conflict_decisions=["admit-before-train"],
-        validation_plan=["suite-dev", "suite-seal"],
+        validation_plan={"suites": ["suite-dev", "suite-seal"], "hard_gates": ["task floor"]},
     )
     assert stack.stack_hash
     assert stack.ordered_recipes == ["grounded-responses@1.0.0", "replay-grounding@1.0.0"]
     assert stack.overrides["replay-grounding"]["allocation"] == 0.2
-    assert stack.validation_plan == ["suite-dev", "suite-seal"]
+    assert stack.validation_plan["suites"] == ["suite-dev", "suite-seal"]
 
 
-@pytest.mark.parametrize("reason", ["conflict", "objective", "interface", "hard_gate"])
-def test_stack_refuses_incompatible_or_disallowed_composition(tmp_path, reason):
+@pytest.mark.parametrize(
+    "second_recipe_kwargs,objective,validation_plan,reason",
+    [
+        ({"conflicts": "[grounded-responses]"}, {"hard_gates": ["task floor"]}, None, "conflict"),
+        ({}, {"hard_gates": ["task floor"], "recipe_policy": {"forbidden": ["replay-grounding"]}}, None, "objective"),
+        ({"interfaces": "[batch]"}, {"hard_gates": ["task floor"], "interface": {"kind": "chat"}}, None, "interface"),
+        ({}, {"hard_gates": ["task floor"]}, {"suites": ["suite-dev"], "hard_gates": []}, "hard_gate"),
+    ],
+)
+def test_stack_refuses_real_incompatible_or_disallowed_composition(tmp_path, second_recipe_kwargs, objective, validation_plan, reason):
     write_recipe(tmp_path)
-    _second_recipe(tmp_path)
+    _second_recipe(tmp_path, **second_recipe_kwargs)
     from facktry.errors import RecipeCompositionError
     from facktry.recipes import RecipeCatalog
 
     catalog = RecipeCatalog(tmp_path)
-    with pytest.raises(RecipeCompositionError):
+    with pytest.raises(RecipeCompositionError, match=reason):
         catalog.compose_recipe_stack(
             ["grounded-responses@1.0.0", "replay-grounding@1.0.0"],
-            objective={"reject_recipe_reason": reason, "hard_gates": ["task floor"]},
+            objective=objective,
+            validation_plan=validation_plan,
         )
 
 

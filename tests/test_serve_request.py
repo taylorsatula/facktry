@@ -2,8 +2,6 @@
 
 import json
 
-import pytest
-
 from serve_samples import ScriptedModel, guard_policy
 
 
@@ -21,7 +19,6 @@ def test_retry_cap_is_bounded_and_unclassifiable_failure_falls_back(tmp_path, mo
 
 def test_retryable_guard_failure_stops_at_cap(tmp_path, monkeypatch):
     from facktry.serve import RequestServer
-    from facktry.errors import GuardRetryExhausted
 
     backend = ScriptedModel(outputs=[{"text": "{bad json"}] * 5)
     server = RequestServer(backend, guard_policy(), retry_cap=2)

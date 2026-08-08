@@ -1,6 +1,10 @@
 """Phase 10 red tests: pure auto-focus ordering and empty state."""
 
+import pytest
+
 from cli_samples import item
+
+pytestmark = pytest.mark.unit
 
 
 def test_focus_priority_matches_adr_order():

@@ -708,7 +708,7 @@ Objective-centric, fixed panes—no per-domain JSON required:
 - **Machine:** GPU util/mem/temp · disk free · train/infer heartbeats  
 - **Log tail:** active run primary log last lines  
 
-Live refresh never starts training. Inbox respond and promote ack are explicit subcommands only.
+Live refresh never starts training. Inbox responses, including human-promotion acknowledgements, are explicit subcommands only.
 
 #### 7.14.5 Implementation constraints
 

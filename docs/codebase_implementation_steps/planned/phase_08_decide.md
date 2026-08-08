@@ -67,6 +67,7 @@ Each mapping emits a machine-readable hint (which gate, which evidence hash).
   - soft-only failures → never `promote`
   - diagnostic-only failures → no blocking effect; appears in dossier
   - missing evidence for a gate → treated as failed
+  - repeated calls with identical inputs produce identical serialized Decisions (no hidden mutable state)
 - Intervention mapping: each detector pattern → correct class + hint.
 - Defect upsert: repeated same-failure decisions update one defect rather than spawning duplicates.
 - Dossier artifact: hash-registered, contains gate table + intervention + budget sections.

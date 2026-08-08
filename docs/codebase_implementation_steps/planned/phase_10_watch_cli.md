@@ -9,7 +9,7 @@
 
 ## Goal
 
-Provide the human overseer's read-only live view. Bare `facktry` auto-focuses without required flags; CLI mutation is limited to explicit inbox/promote-ack subcommands.
+Provide the human overseer's read-only live view. Bare `facktry` auto-focuses without required flags; CLI mutation is limited to explicit inbox subcommands, including human-promotion acknowledgements expressed as answered inbox items.
 
 ## In scope (`facktry/cli/`)
 
@@ -32,7 +32,7 @@ Header (objective id · MissionBrief id/version/hash · intent · autonomy · bu
 
 ### Constraints (ADR §7.14.5)
 - In-process renderer; no subprocess hop.
-- Only `query_*` reads; live refresh **never** starts training or mutates anything. Inbox respond/promote ack are the explicit subcommands above, nothing ambient.
+- Only `query_*` reads; live refresh **never** starts training or mutates anything. Inbox responses (including promote acknowledgements) are the explicit subcommands above, nothing ambient.
 - Missing metrics/logs/GPU degrade panes to placeholders ("no metrics yet") — never crash. Test with a bare workspace.
 - Machine probes tolerate broken NVML (known host issue: driver/library mismatch) — render "GPU probe unavailable".
 
@@ -52,7 +52,9 @@ Header (objective id · MissionBrief id/version/hash · intent · autonomy · bu
 - `facktry status` renders against bare workspace and against populated fixture without exceptions (invoke via Click/argparse test runner, capture output).
 - Snapshot is read-only (no store mutations).
 - Missing metrics file / missing GPU → degraded panes, exit code 0.
-- `facktry inbox respond` round-trip: valid response resolves item; invalid refused with schema error.
+- `facktry inbox respond` and `facktry inbox ingest <file>` round-trip through the same schema path; `inbox show`, `show <id>`, and `ls` render useful non-mutating output.
+- Live/once rendering contains every fixed pane and remains read-only across repeated refreshes.
+
 
 ## Checklist updates
 

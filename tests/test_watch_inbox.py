@@ -4,6 +4,10 @@ import json
 import subprocess
 import sys
 
+import pytest
+
+pytestmark = [pytest.mark.cli, pytest.mark.integration, pytest.mark.slow]
+
 
 def run_cli(home, *args):
     return subprocess.run([sys.executable, "-m", "facktry.cli.main", *args, "--home", str(home)], capture_output=True, text=True)

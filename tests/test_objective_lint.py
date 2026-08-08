@@ -44,6 +44,15 @@ def test_each_lint_rule_returns_named_violation(changes, token):
     assert_rule(make_objective(changes), token)
 
 
+def test_no_self_distill_defaults_true_when_constraint_is_absent():
+    from facktry import types
+
+    data = objective_payload()
+    data["constraints"].pop("no_self_distill")
+    objective = types.Objective.from_dict(data)
+    assert objective.constraints["no_self_distill"] is True
+
+
 def test_incomplete_brief_and_missing_individual_gate_approval_refuse_freeze(tmp_path, monkeypatch):
     store = store_for(tmp_path, monkeypatch)
     from facktry import objective

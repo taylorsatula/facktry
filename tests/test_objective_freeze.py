@@ -62,6 +62,24 @@ def test_mutating_frozen_objective_is_refused(tmp_path, monkeypatch):
         objective.freeze_objective(store, changed)
 
 
+def test_show_and_list_keep_superseded_index_state_outside_frozen_bytes(tmp_path, monkeypatch):
+    store = store_for(tmp_path, monkeypatch)
+    from facktry import objective, types
+
+    objective.save_mission_brief(store, types.MissionBrief.from_dict(brief_payload()))
+    old = objective.freeze_objective(store, types.Objective.from_dict(objective_payload()))
+    new = objective.supersede_objective(
+        store,
+        old.id,
+        types.Objective.from_dict(objective_payload({"id": "objective-new", "supersedes": old.id, "intent": "new intent"})),
+    )
+    shown = objective.show_objective(store, old.id)
+    assert shown["id"] == old.id
+    assert shown["status"] == "superseded"
+    assert shown["superseded_by"] == new.id
+    assert [item.id for item in objective.list_objectives(store)] == [new.id, old.id]
+
+
 def test_supersede_preserves_old_bytes_and_links_new_objective(tmp_path, monkeypatch):
     store = store_for(tmp_path, monkeypatch)
     from facktry import objective, types

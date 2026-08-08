@@ -21,7 +21,7 @@ class World(Protocol):
     def oracle_state(self) -> dict: ...        # private — runner only
     def export_transcript(self) -> Transcript: ...
 ```
-Core ships `EchoWorld`/`CounterWorld` test fixtures (deterministic toy worlds); real worlds come from domain packs.
+Core ships `EchoWorld`/`CounterWorld` deterministic toy fixtures under `facktry.play.testing`; real worlds come from domain packs. Tests may retain separate hostile worlds for leak and unauthorized-action probes, but protocol conformance must cover the shipped fixtures.
 
 ### Episode runner
 - `run_episode(subject: ModelBackend, partner: PartnerConfig | None, world: World, *, max_turns: int, seed) -> Episode`:

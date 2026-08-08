@@ -34,6 +34,16 @@ def test_dependence_key_leakage_against_existing_admitted_rows_is_rejected(tmp_p
     assert not second.passed
 
 
+def test_sealed_rows_are_never_admitted_for_training_even_when_structurally_valid(tmp_path, monkeypatch):
+    store = frozen_store(tmp_path, monkeypatch)
+    from facktry.admit import admit
+
+    report = admit(store, "objective-valid", [row("seal-row", split="seal")], for_training=True)
+    assert not report.passed
+    assert report.reject_reasons["sealed_split"] == 1
+    assert report.keep_count == 0
+
+
 def test_hidden_generator_context_is_not_attributed(tmp_path, monkeypatch):
     store = frozen_store(tmp_path, monkeypatch)
     from facktry.admit import admit

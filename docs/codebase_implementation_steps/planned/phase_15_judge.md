@@ -15,11 +15,11 @@ Implement optional LLM assessment that earns soft-gate credit only after calibra
 
 ### Core
 - `JudgeBackend` protocol: `assess(batch, criteria) -> list[Assessment]`. Tests use a scripted fake; real backends (local llama-server etc.) are config-injected, never hardcoded.
-- `assess(store, items, criteria: Criteria) -> JudgeReport`: batch assessment; **criteria content hash recorded** on the report; per-item scores + rationales; position-swap for pairwise compares (both legs run, order recorded, disagreement surfaced as its own signal).
+- `assess(items, criteria: Criteria, backend: JudgeBackend, *, store=None, calibration=None, remote=False) -> JudgeReport`: batch assessment through the explicit backend; **criteria content hash recorded** on the report; per-item scores + rationales; position-swap for pairwise compares (both legs run, order recorded, disagreement surfaced as its own signal). `store` is optional for local assessment and required for persisted reports, replay, policy checks, or remote redaction.
 - `Criteria`: id, version, prompt/rubric text, scale, severity-ceiling field. **Severity ceiling is enforced structurally:** judge-derived gate results are created with severity ≤ `soft` unless calibration status promotes them — and can never be created as `hard` (hard gates come from verify/suite/admit only). A code path attempting hard-severity judge results → typed refusal.
 
 ### Calibration (the gate on the judge)
-- Ship calibration fixtures under `facktry/judge/calibration/` (hash-pinned items with known-good expected assessments: clear-pass, clear-fail, borderline cases).
+- Ship calibration fixtures under `facktry/judge/calibration/` (hash-pinned items with known-good expected assessments: clear-pass, clear-fail, borderline cases). `load_calibration_fixture(path)` recomputes the declared fixture hash before exposing items; tampered fixture bytes are refused.
 - `calibrate(backend, criteria) -> CalibrationResult`: run fixtures; pass when agreement with expected labels ≥ threshold (default: all clear cases correct, borderline within one step).
 - **After any judge model/prompt/criteria change, calibration must pass before judge outputs count as soft gates.** Enforcement: `JudgeReport` carries `calibration_ref`; `findings_to_gate_results`-equivalent for judge output refuses soft severity without a passing calibration for the exact criteria hash + backend id → forced `diagnostic`.
 

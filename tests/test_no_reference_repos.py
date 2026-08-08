@@ -3,6 +3,10 @@
 import re
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.conformance
+
 PKG = Path(__file__).resolve().parents[1] / "facktry"
 PATTERN = re.compile(r"\breference_repos\b")
 
