@@ -24,18 +24,24 @@
 
 ## 0. Repository skeleton
 
-- [ ] Package root installable (`pyproject.toml`, package name `facktry`)
-- [ ] Console entrypoint `facktry` → CLI main
-- [ ] Package importable: `import facktry`
-- [ ] `facktry/__init__.py` exports version
-- [ ] Workspace default `.facktry/` + `FACKTRY_HOME` discovery helper
-- [ ] `runs/` (or workspace-relative runs) gitignored
-- [ ] `.facktry/` gitignored as appropriate
-- [ ] `tests/` laid out and pytest discovers them
-- [ ] README pointing at `ADR.md`, this checklist, `docs/skills/`, and `docs/recipes/`
-- [ ] No runtime dependency on reference repositories
+- [~] Package root installable (`pyproject.toml`, package name `facktry`)
+- [~] Console entrypoint `facktry` → CLI main
+- [~] Package importable: `import facktry`
+- [~] `facktry/__init__.py` exports version
+- [~] Workspace default `.facktry/` + `FACKTRY_HOME` discovery helper
+- [~] `runs/` (or workspace-relative runs) gitignored
+- [~] `.facktry/` gitignored as appropriate
+- [~] `tests/` laid out and pytest discovers them
+- [~] README pointing at `ADR.md`, this checklist, `docs/skills/`, and `docs/recipes/`
+- [~] No runtime dependency on reference repositories
 
 **Notes:**
+
+Phase 00 red suite written and verified failing (14/14) in an isolated `.venv`
+(no `--system-site-packages`). A stale editable `facktry` install from a prior
+scaffolding probe (dist-info + `~/.local/bin/facktry`) made packaging-metadata
+tests pass while the package was unimportable; purge prior installs before
+trusting metadata tests. Green implementation to follow.
 
 
 
@@ -505,7 +511,7 @@ Update timestamps (UTC) and counts whenever you edit this file.
 
 | Area | Status | Last update (UTC) | Agent note |
 |---|---|---|---|
-| 0 Skeleton | [ ] | | |
+| 0 Skeleton | [~] | red suite written; green impl pending |
 | 1 Types | [ ] | | |
 | 2 store | [ ] | | |
 | 3 objective | [ ] | | |
@@ -527,9 +533,9 @@ Update timestamps (UTC) and counts whenever you edit this file.
 | 18 mandatory tests | [ ] | | |
 | 19 success criteria | [ ] | | |
 
-**Currently in progress:** None (all phases incomplete; start with Phase 00)
+**Currently in progress:** Phase 00 skeleton (red suite written; green impl pending)
 
-**Phase doc:** `codebase_implementation_steps/planned/phase_00_skeleton.md`
+**Phase doc:** `codebase_implementation_steps/active/phase_00_skeleton.md`
 
 **Blocked on:** _(none)_
 
