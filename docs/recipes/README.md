@@ -23,13 +23,9 @@ The isolated `research` worker produces a `RecipeProposal`: bounded evidence and
 
 ## Composition and compounding use
 
-The operator is encouraged to retrieve recipes before every substantive intervention: initial planning, training-method selection, correction after a failed gate, and reasoning around human-inbox answers. `recommend_recipes` ranks candidates using the target effect, Objective constraints, open defects, notes, and prior outcomes.
+Retrieve recipes at substantive interventions, including planning, training correction, and human-inbox reasoning. `recommend_recipes` ranks candidates from the target effect, Objective constraints, defects, notes, and prior outcomes.
 
-The operator may select several compatible recipes into an immutable `RecipeStack`. The stack records exact recipe versions, ordering, parameter overrides, conflicts, and the resulting validation plan. Each governed run and resulting release records the stack hash.
-
-After the run, the operator should append a structured use note—even for a failure or non-promotion—so later iterations inherit the experience. This creates compounding development memory: the facktry becomes better at selecting interventions without silently changing model weights or skipping fresh evaluation.
-
-Recipes and stacks never skip mission elicitation, admission, smoke training, sealed measurement, decisions, or human promotion. Notes can influence future selection, but only cited measured evidence can satisfy gates.
+Compose compatible candidates into an immutable `RecipeStack` containing exact versions, ordering, overrides, conflicts, and validation. Record its hash on governed runs and releases, then append a structured use note—including failures and non-promotions—for future recommendations. Notes never replace fresh measurement or governance.
 
 ## Notes
 

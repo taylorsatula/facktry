@@ -19,8 +19,8 @@ The single governed mutation surface for the LLM agent. Every operation the agen
 ### Operations (ADR §7.13 table — all present; capabilities may not be dropped)
 | Operation | Implementation notes |
 |---|---|
-| `save_mission_brief` / `show_mission_brief` / `list_mission_briefs` | phase 03 functions; save creates one immutable version/hash at the end of elicitation and never overwrites an earlier version. Recipe candidates, notes consulted, and human tradeoffs are durable planning provenance. |
-| `freeze_objective` / `show_objective` / `supersede_objective` | phase 03 functions; freeze requires a complete matching MissionBrief; supersede checks policy `objective.supersede` and recipe policy/stack constraints. |
+| `save_mission_brief` / `show_mission_brief` / `list_mission_briefs` | phase 03 functions; immutable version/hash at end of elicitation; recipe considerations are planning provenance. |
+| `freeze_objective` / `show_objective` / `supersede_objective` | phase 03 functions; freeze requires a matching MissionBrief and valid recipe policy/stack constraints. |
 | `preflight` | `govern.preflight`. |
 | `list_recipes` / `show_recipe` | Read-only curated recipe catalog and append-only notes. |
 | `recommend_recipes` | Read-only ranking from target effects, Objective constraints, defects, notes, and prior outcomes; recommendations are proposals, not gates. |
@@ -40,7 +40,7 @@ The single governed mutation surface for the LLM agent. Every operation the agen
 
 ### Cross-cutting
 - Secrets: operation specs reference secret *names*; values expand from a secret store (env-var backed default) at execution time and are never written into manifests, specs, or results. Test asserts secret values appear in no persisted artifact.
-- Every mutating op: policy check → preflight subset where relevant → budget charge → execute → persist → structured result. `save_mission_brief` is the deliberate end-of-elicitation persistence call; experiment mutations additionally call `mission_brief_required`. Recipe retrieval is encouraged before intervention selection, during training/correction reasoning, and after human-inbox answers; every applied recipe gets an evidence-backed note after the attempt. A test walks all mutating ops with a deny-all policy and asserts every one is refused (no bypass).
+- Every mutating op: policy check → preflight subset where relevant → budget charge → execute → persist → structured result. `save_mission_brief` is the deliberate end-of-elicitation persistence call; experiment mutations additionally call `mission_brief_required`. Recipe retrieval and post-run notes are part of the operator loop, not a govern bypass. A test walks all mutating ops with a deny-all policy and asserts every one is refused (no bypass).
 
 ## Out of scope
 
@@ -55,7 +55,7 @@ The single governed mutation surface for the LLM agent. Every operation the agen
 ## Tests
 
 - Envelope shape on success and on each denial type.
-- Recipe recommendations use target/defect/note fixtures; composition rejects conflicts and hard-gate weakening; notes append without changing instruction hashes.
+- Recipe recommendation, composition, and note append preserve hashes and reject conflicts or hard-gate weakening.
 - Save MissionBrief returns immutable version/hash; all experiment operations without a matching brief return typed `MissionBriefRequired`.
 - Deny-all policy sweep over all mutators → all refused with typed errors.
 - Inbox: item created by `decide(ask_human)`; schema-invalid ingest refused; valid ingest resolves the human gate and unblocks a subsequent `decide`.

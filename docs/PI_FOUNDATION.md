@@ -322,11 +322,9 @@ The `elicit` skill is an adaptive outline, not a fixed questionnaire: it require
 
 ### 6.5 Recipes (effect specifications)
 
-Recipes are not an alternate skill format. The canonical source is `docs/recipes/<recipe-id>/RECIPE.md`; the Pi image exposes read-only catalog discovery and delegates recommendation/composition to the Python harness when available. A recipe describes the ingredients and proof plan for creating a named effect such as a warmer conversational voice or stronger agentic search. It may span data, training, prompt/interface, serving, and evaluation.
+Recipes are not an alternate skill format. The canonical source is `docs/recipes/<recipe-id>/RECIPE.md`. The Pi image exposes read-only discovery and recommendation; composition delegates to the Python harness. `recommend_recipes` and `compose_recipe_stack` return proposals/stacks, while applications remain subject to the ordinary governed path.
 
-Recipe retrieval is encouraged at every substantive development decision: initial planning, training-method selection, correction after a failed gate, and human-inbox reasoning. The operator may read recipe notes when planning, but must distinguish anecdotal use notes from measured evidence. `recommend_recipes` proposes candidates; `compose_recipe_stack` resolves exact recipe versions, order, overrides, conflicts, and validation suites into an immutable stack. Applying a stack still uses the ordinary `agent_api` path and remains subject to `govern`, `admit`, smoke, sealed measure, and decision gates.
-
-`## Recipe Notes` is append-only. After each governed use, the operator is encouraged to append a note recording later context, adaptation, effect, regression, evidence refs, recommendation, and confidence—even when the recipe failed or was not promoted. Editing instructions requires a new recipe version; appending a note must not silently change the old recipe's behavior. The loader and artifact store must keep recipe instructions and notes distinguishable for hashing and reproducibility.
+Recipe retrieval is encouraged during planning, training correction, and human-inbox reasoning. `## Recipe Notes` is append-only: record outcomes, including failures and non-promotions, without changing the instruction hash. The loader must keep instructions and notes distinguishable for reproducibility.
 
 ### 6.6 Slash commands (extension commands)
 

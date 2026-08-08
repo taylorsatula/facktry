@@ -24,7 +24,7 @@ Natural-language intent is not yet an executable objective. Before any objective
 
 **Deliverable of a successful data-only objective:** admitted corpus artifacts plus a `Decision`. Corpus work is otherwise intermediate fuel for model objectives.
 
-Facktry is also a compounding model-development system. During planning, training, correction, and human-interactive reasoning, the operator should retrieve relevant recipes and their accumulated use notes instead of rediscovering known interventions. Each governed run adds measured experience back to the recipe book, improving future recipe selection and composition. This is continuous agentic learning for model development: the agent improves its intervention knowledge and choices over time, while model changes themselves remain explicit, hashed, evaluated, and governed.
+Facktry compounds model-development knowledge: the operator retrieves recipes during planning, training, correction, and human reasoning, then records outcomes for future selection. Model changes remain explicit, hashed, evaluated, and governed.
 
 **Words in, model out** is the default shape for finetune objectives: harvest or synthesize data → admit → smoke train → scale train → select checkpoint → paired sealed measure → decide → yield `ReleaseTuple`.
 
@@ -359,22 +359,6 @@ The canonical human-authored source is `<recipe-id>/RECIPE.md` under `docs/recip
 A `RecipeProposal` returned by research is provisional evidence. It becomes a reusable `Recipe` only when curated into a reviewed `RECIPE.md`; research never silently edits the catalog.
 
 A `RecipeStack` is an immutable composition for one objective iteration or run. It records ordered recipe refs and hashes, resolved parameter overrides, ingredient allocation, compatibility/conflict decisions, and the validation plan. Stacks are selected under the Objective's `recipe_policy`, never by unconstrained concatenation. Every governed run and resulting `ReleaseTuple` records the exact stack hash.
-
-Recipes are active development memory, not a one-time preflight lookup. The operator should consult them before choosing an intervention, while planning a training run, when a human answers a judgment or redirects the mission, and after a result exposes a new failure or interaction. A recipe note may improve future retrieval or composition, but it never mutates a prior run or silently changes a frozen Objective.
-
-The compounding loop is:
-
-```text
-retrieve recipes + notes + defects
-  → reason with the human about target/tradeoffs
-  → recommend and compose a RecipeStack
-  → execute the ordinary governed training loop
-  → measure effect and regressions
-  → append success/failure use notes
-  → improve the next recommendation
-```
-
-The facktry learns here by improving intervention selection and model-development memory, not by treating unverified notes as model weights or as gates.
 
 Recipe notes are append-only institutional memory. A note records the date, run/objective, base and surrounding stack, adaptation, observed effect, regressions, evidence refs, recommendation, and confidence. Each note is separately hashed and advances the notes head; notes may inform future composition but cannot satisfy a gate by themselves. Changing recipe instructions creates a new recipe version; appending a note does not change the instruction hash or operational meaning of the prior version. Notes contain no secrets, raw private examples, or identifying data.
 

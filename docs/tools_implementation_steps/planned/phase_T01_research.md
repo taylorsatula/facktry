@@ -21,7 +21,7 @@ Ship a parent-facing **`research` tool** for the facktry operator image that:
 4. Returns only a **bounded, structured recipe summary** into the parent context (no raw paper dumps).
 5. Produces a provisional `RecipeProposal`; it does not silently create or edit a curated `docs/recipes/<id>/RECIPE.md`.
 
-This is the highest-leverage operator capability before harness mutations exist: it turns “how should we train?” into attributed, checkable proposals that can later be curated into reusable effect recipes.
+This is the highest-leverage operator capability before harness mutations exist: it turns “how should we train?” into attributed, checkable proposals.
 
 ---
 
@@ -44,7 +44,7 @@ ml-intern is large. **Implement only what moves quality the most.** Ranked by gr
 | **P3** | YOLO billing, Trackio-alert loops, HF Jobs preflight essays, web UI research overlays | Low leverage for facktry foundation | skip |
 | **P3** | Unrestricted worker `bash` | Foot-gun; prefer fetch inside papers tool | skip or deny by default |
 
-**Non-goals for T01:** full ml-intern product, sealed eval, admit, train jobs, automatic promotion of `RecipeProposal` into a curated recipe, recipe-stack execution, multi-judge panels. Parsing a proposal into a provisional artifact is a stretch; curated `RECIPE.md` loading and governed `RecipeStack` composition belong to the recipe/catalog track.
+**Non-goals for T01:** full ml-intern product, sealed eval, admit, train jobs, automatic proposal promotion, recipe-stack execution, multi-judge panels. Curated recipe loading belongs to the recipe/catalog track.
 
 ---
 

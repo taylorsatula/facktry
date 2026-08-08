@@ -449,8 +449,6 @@ Recipes live in `docs/recipes/<recipe-id>/RECIPE.md`; `_template/RECIPE.md` is a
 
 **Notes:**
 
-Recipes are curated reusable effect knowledge. `research` produces provisional `RecipeProposal` evidence and does not silently write the catalog.
-
 
 ---
 
