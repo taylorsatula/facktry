@@ -25,26 +25,24 @@ Facktry’s product has two operator surfaces (ADR §3):
 
 This document covers a third, infrastructural piece that the ADR implies but does not specify:
 
-> **The agent needs a host process** — models, tool loop, session memory, sub-agents, prompts — that is **facktry-shaped**, not a generic coding agent that happens to know about facktry.
+The operator needs a facktry-shaped host process for models, tools, session memory, sub-agents, and prompts—not a generic coding agent configured for facktry.
 
-**Foundation goal:** before (or in parallel with early) harness modules, ship a **Pi session image** and launcher such that:
+**Foundation goal:** before, or in parallel with, the early harness modules, ship a **Pi session image** and launcher:
 
 ```text
 facktry run
   → Pi-based interactive (or headless) session
   → facktry system prompt + facktry tool allowlist + facktry subagents
-  → zero leakage into a normal `pi` invocation elsewhere on the machine
+  → no facktry prompts, tools, agents, extensions, or sessions enter a normal `pi` invocation
 ```
 
-The session is useful immediately for research, planning against the ADR, and scaffolding work. As `store` / `agent_api` / `govern` land, the same image grows real mutation tools without changing the launch path.
-
-**Words in, session out (this track):** a human starts `facktry run` and gets an operator agent whose identity, tools, and research pipeline are facktry’s — not stock Pi defaults. For any pipeline activity, the operator first completes adaptive elicitation, then saves a `MissionBrief` through the harness bridge before freezing or running an experiment.
+The image supports research, ADR planning, and scaffolding before harness mutations exist; later modules add governed mutation tools without changing the launch path. Pipeline activity requires adaptive elicitation and a saved `MissionBrief` before freeze or experimentation.
 
 ---
 
-## 2. Why Pi (and why not fork Pi)
+## 2. Pi integration boundary
 
-### 2.1 Adopt
+### 2.1 Use Pi
 
 Pi already provides, without fork:
 
@@ -55,7 +53,7 @@ Pi already provides, without fork:
 - Packages: bundle extensions, skills, prompts without global install  
 - TUI and headless/RPC modes  
 
-### 2.2 Reform, do not fork
+### 2.2 Build an application, do not fork
 
 Facktry ships an **image** on top of Pi:
 
@@ -80,7 +78,7 @@ These are fail-closed laws for the **session image**. Violating them is a produc
 3. **Allowlist, do not hope.** Parent session tools are an explicit set. Built-in coding tools are disabled or narrowly gated unless the image deliberately enables them.
 4. **Research is isolated.** Literature crawl runs in a child context; only a bounded summary re-enters the parent.
 5. **Summaries are structured.** Research return shape is a contract (recipe table + refs + gaps), not free-form chat.
-6. **Mutation is facktry-native.** Weight/data/decision mutations go through facktry tools → (eventually) `agent_api` → `govern`. No “just bash train.py” as the blessed path.
+6. **Mutation is facktry-native.** Weight, data, and decision mutations go through facktry tools → (eventually) `agent_api` → `govern`. Direct shell training is not a blessed path.
 7. **Harness incomplete ≠ harness bypass.** Until `agent_api` exists, mutation tools are absent or return explicit `not_implemented` / `harness_unavailable`. They must not fake success.
 8. **Skills and recipes are documentation with contracts.** Skills teach call order; recipes specify how to create an effect. Neither replaces tool enforcement. Recipe instructions are versioned; recipe notes are append-only memory.
 9. **One launcher, two modes.** Interactive operator chat and headless single-shot share the same image factory.
@@ -98,7 +96,7 @@ These are fail-closed laws for the **session image**. Violating them is a produc
 - Multi-user SaaS hosting of the operator  
 - Replacing `facktry watch` human CLI with the Pi TUI  
 - Global installation of facktry as the user’s default Pi config  
-- Parity with every ML Intern feature (HF Jobs UI, web frontend, YOLO billing, etc.)  
+- Parity with every ML Intern feature (HF Jobs UI, web frontend, billing, etc.)
 - Sealed-suite custody inside the research subagent (sealed eval is harness `suite`, not research)  
 
 ---
@@ -200,13 +198,12 @@ createFacktryOperatorSession(options) -> {
 - Symlinking facktry agents into `~/.pi/agent/agents` in install scripts  
 - Documenting “add this to your global extensions” as the primary UX  
 
-**Allowed escape hatches (explicit, documented, off by default):**
+**Allowed escape hatches (explicit and documented):**
 
-- `FACKTRY_PI_EXTRA_EXTENSIONS` — paths to additional extensions for dev  
-- `FACKTRY_PI_INHERIT_USER_AUTH=1` — use host Pi auth/models paths (likely default **on** for keys, without loading user extensions)  
-- `FACKTRY_PI_ALLOW_USER_AGENTS=1` — merge user agents (discouraged)  
+- `FACKTRY_PI_EXTRA_EXTENSIONS` — additional extensions for development; off by default
+- `FACKTRY_PI_ALLOW_USER_AGENTS=1` — merge user agents; off by default and discouraged
 
-Auth/models may share `~/.pi/agent/models.json` / auth store so users do not re-login; **extensions and agents must not ride along** just because auth is shared. Prefer `ModelRuntime` with explicit paths.
+`FACKTRY_PI_INHERIT_USER_AUTH=1` is enabled by default to share host auth/model paths. Shared auth does not load user extensions or agents. Prefer `ModelRuntime` with explicit paths.
 
 ---
 
@@ -309,7 +306,7 @@ Minimum skill topics (aligned with ADR §7.16):
 
 - elicit and save MissionBrief  
 - freeze objective  
-- pin suites and select/compose recipe stacks
+- pin suites and select/compose `RecipeStack`s
 - admit / generate_and_admit  
 - smoke then scale  
 - measure / decide  
@@ -324,7 +321,7 @@ The `elicit` skill is an adaptive outline, not a fixed questionnaire: it require
 
 Recipes are not an alternate skill format. The canonical source is `docs/recipes/<recipe-id>/RECIPE.md`. The Pi image exposes read-only discovery and recommendation; composition delegates to the Python harness. `recommend_recipes` and `compose_recipe_stack` return proposals/stacks, while applications remain subject to the ordinary governed path.
 
-Recipe retrieval is encouraged during planning, training correction, and human-inbox reasoning. `## Recipe Notes` is append-only: record outcomes, including failures and non-promotions, without changing the instruction hash. The loader must keep instructions and notes distinguishable for reproducibility.
+Recipe retrieval is encouraged during planning, training correction, and human-inbox reasoning. `## Recipe Notes` is append-only: append a structured outcome after each governed use, including failures and non-promotions, without changing the instruction hash. The loader must keep instruction content and notes distinguishable for reproducibility.
 
 ### 6.6 Slash commands (extension commands)
 
@@ -389,9 +386,9 @@ Bounded structured summary only → parent context
 
 ### 7.4 Research system prompt — crawl doctrine
 
-Ship as `facktry-pi/agents/research.md` (frontmatter: name, description, tools, optional model) **or** embedded prompt + tool list in the spawner. Content doctrine (normative):
+Ship as the canonical `facktry-pi/agents/research.md` worker definition (frontmatter: name, description, tools, optional model). Content doctrine (normative):
 
-1. **Start from literature**, not from docs or vibes.  
+1. **Start from literature**, not from documentation or unverified assumptions.
 2. **Anchor papers** — search; prefer high citation and/or recent strong results.  
 3. **Downstream citation graph** — papers that *cite* the anchor (improvements/applications).  
 4. **Read methodology/experiments** — TOC first, then sections (typically methods/experiments/results); not abstracts alone.  
@@ -404,7 +401,7 @@ Ship as `facktry-pi/agents/research.md` (frontmatter: name, description, tools, 
 
 ### 7.5 Research output contract
 
-Worker final message **must** be structured approximately as:
+Worker final message **must** follow this structure:
 
 ```markdown
 ## Recipe table
@@ -477,7 +474,7 @@ Parse research markdown (or ask worker for JSON mode) into a provisional `Recipe
 - structured recipes[]
 - evidence and limitations
 
-A proposal is not a catalogued recipe and cannot directly mutate an objective. A human or operator may curate it into `docs/recipes/<recipe-id>/RECIPE.md`, preserving references and limitations.
+A proposal is not a curated recipe and cannot directly mutate an Objective. A human curator may add it to `docs/recipes/<recipe-id>/RECIPE.md`, preserving references and limitations.
 
 ### 7.9 Curated recipe and stack artifacts
 
@@ -680,7 +677,7 @@ This track is **orthogonal** to harness phases 00–17 in `codebase_implementati
 
 **Definition of done:**
 
-- On a machine with weird global Pi extensions installed, `facktry run` still only exposes facktry allowlist  
+- With unrelated global Pi extensions installed, `facktry run` still exposes only the facktry allowlist
 - `pi` in another directory has zero facktry tools  
 - One manual research query returns a structured recipe-shaped summary  
 
@@ -763,7 +760,7 @@ Harness ADR §13.3 tests remain in Python; do not duplicate them in TS.
 | `RESEARCH_SYSTEM_PROMPT` crawl order | `agents/research.md` |
 | `hf_papers` operations | facktry `papers` tool |
 | Recipe table output | Research output contract §7.5 |
-| YOLO / HF Jobs / web UI | **Out of scope** |
+| Hosted jobs, billing, and web UI | **Out of scope** |
 | Prompt-only smoke-then-scale | **Harness `govern`** when present; prompt reminds only |
 
 No runtime dependency on `ml-intern` or `mlintern-plugin`.
@@ -781,10 +778,10 @@ No runtime dependency on `ml-intern` or `mlintern-plugin`.
 | §7.13 agent_api ops | Tool vocabulary |
 | §7.16 skills | Shipped to operator image |
 | §7.17 recipes | Shipped as read-only effect catalog; recommendation/composition through governed agent_api; notes compound over uses |
-| §8 control loop | Prompt + skills + recipe stacks; tools enforce order via govern |
+| §8 control loop | Prompt + skills + `RecipeStack`s; tools enforce order via govern |
 | §13.2 build order | Foundation track parallel; F2 waits for agent_api |
 
-The ADR now enshrines the complementary product contract: every objective and experiment requires a saved MissionBrief, and the Pi image is the reference operator host that performs adaptive elicitation with `questions` and `research` before calling `save_mission_brief` and `freeze_objective`. Normal `pi` does not load facktry. This file remains authoritative for the operator-host implementation, while `ADR.md` remains authoritative for harness behavior.
+`PI_FOUNDATION.md` governs the operator host; `ADR.md` governs harness behavior. The host uses `questions` and `research` for adaptive elicitation, requires `save_mission_brief` before `freeze_objective` or experimentation, and keeps normal `pi` free of facktry resources.
 
 ---
 

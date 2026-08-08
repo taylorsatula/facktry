@@ -1,13 +1,13 @@
 ---
 name: recipe-authoring
-description: Create curated model-effect recipes from the canonical template and append structured, evidence-backed notes after recipe uses. Keep recipe instructions versioned, notes append-only, and all claims subject to ordinary facktry governance and measurement.
+description: Author versioned model-effect recipes and append evidence-backed use notes under facktry governance.
 ---
 
 # Recipe authoring
 
 Use this skill when creating a new `RECIPE.md` or recording a subsequent use of an existing recipe.
 
-A recipe is a versioned, evidence-backed specification for creating a named behavioral effect in a model stack. It may combine data, training, prompt/interface, serving, and evaluation changes. It is not a prompt fragment, an unverified research proposal, a guarantee, or a bypass around `govern`.
+Author recipes as versioned, evidence-backed specifications for named behavioral effects. A recipe may combine data, training, prompt/interface, serving, and evaluation changes; it is not a prompt fragment, unverified proposal, guarantee, or governance bypass.
 
 ## Canonical locations
 
@@ -17,7 +17,7 @@ A recipe is a versioned, evidence-backed specification for creating a named beha
 - Catalog rules: `docs/recipes/README.md`
 - Product contract: `docs/ADR.md` §5.14 and §7.17
 
-Package-local copies may be generated later. Do not create a competing recipe source elsewhere.
+Do not create a competing recipe source elsewhere.
 
 ## Non-negotiable rules
 
@@ -25,7 +25,7 @@ Package-local copies may be generated later. Do not create a competing recipe so
 - State an observable target effect and how it will be measured.
 - Record mechanism, ingredients, applicability, conflicts, tradeoffs, failure modes, and evidence.
 - Recipes may add validation checks but may not weaken Objective hard gates.
-- Recipe application always uses the ordinary path: MissionBrief → Objective → admit → smoke → scale → measure → decide.
+- Recipe application uses the governed path: MissionBrief → Objective → prepare/generate → admit → smoke → scale when allowed → paired sealed measure → decide.
 - Never treat recipe notes, research claims, or anecdotal success as a passed gate.
 - Recipe instructions are versioned. Changing instructions requires a new recipe version.
 - `## Recipe Notes` is append-only. Do not rewrite, reorder, or delete prior notes.
@@ -33,7 +33,7 @@ Package-local copies may be generated later. Do not create a competing recipe so
 
 ## When to retrieve recipes
 
-Before inventing an intervention, retrieve relevant recipes and notes. Do this during:
+Before inventing an intervention, retrieve relevant recipes and notes during:
 
 - mission elicitation when clarifying the desired effect or tradeoffs
 - training-method, data-mixture, interface, or serving selection
@@ -89,7 +89,7 @@ Use a stable lowercase kebab-case id. Set a real semantic version and use `draft
 
 Fill the template rather than deleting sections. At minimum, provide:
 
-- **Front matter:** id, version, title, status, effects, observable measures, scope, requirements, conflicts
+- **Front matter:** `id`, `version`, `title`, `status`, `effects` with observable `measure`, `scope`, `requires`, and `conflicts`
 - **Effect:** success case, non-goals, and unacceptable regressions
 - **Mechanism:** why the ingredients should create the effect
 - **Ingredients:** data/source classes, mixture constraints, training method and safe ranges, parent/reference requirements, interface/serving changes, and evaluation suites
@@ -102,24 +102,24 @@ Fill the template rather than deleting sections. At minimum, provide:
 
 Use ranges and adaptation knobs where the recipe is portable. Do not present model-specific values as universal defaults.
 
-### 5. Validate before cataloguing
+### 5. Validate before adding to the catalog
 
 Check that:
 
 - the effect has a measurable target and paired baseline
 - every ingredient maps to a governed facktry operation
-- private-data and attribution rules are explicit
+- sources have stable attribution and explicit privacy handling
 - the recipe does not assume hidden context or bypass admission
 - conflicts and stack interactions are stated
 - hard gates and no-regression checks are preserved
-- evidence is linked to stable paper, code, artifact, scorecard, or Decision refs
-- the file contains no secret or identifying material
+- evidence is linked to stable paper, code, artifact, Scorecard, or Decision refs
+- the file contains no secret, private data, or identifying information
 
-A completed draft is still a draft. Ask for human curation when the recipe changes material behavior, gates, budget, privacy posture, or release composition.
+Request human curation when the recipe changes material behavior, gates, budget, privacy posture, or release composition.
 
 ## Update recipe notes
 
-Append a note after a governed use, including a failed smoke, failed gate, hold, or non-promotion. Negative results are valuable recipe memory.
+Append a note after every governed use, including failed smoke runs, failed gates, holds, and non-promotions.
 
 ### 1. Verify the target version
 
@@ -127,7 +127,7 @@ Confirm the recipe id, instruction version, and instruction hash. Do not append 
 
 ### 2. Gather evidence
 
-Use the run, Objective, RecipeStack, TrainCard, scorecard, Decision, and relevant defect refs. If no governed run exists, label the entry as an untested observation rather than measured evidence.
+Use the run, Objective, RecipeStack, TrainCard, Scorecard, Decision, and relevant defect refs. For an observation without a governed run, label it `untested`; it is not measured evidence and cannot satisfy a gate.
 
 ### 3. Append one structured entry
 
@@ -145,15 +145,15 @@ Add the entry at the bottom of `RECIPE.md`, after all prior notes:
 - **Confidence:** low | medium | high
 ```
 
-Use one note per meaningful use. Do not replace “failure” with “partial success” unless the evidence supports that interpretation.
+Append one note for each governed use. Do not replace “failure” with “partial success” unless the evidence supports that interpretation.
 
 ### 4. Preserve instruction semantics
 
 Appending a note must not change the recipe’s instructional body or its instruction hash. If the note reveals that the procedure, ingredients, constraints, or expected effect should change, create a new recipe version and link the prior version. Keep the note on the old version as historical evidence.
 
-### 5. Feed the memory forward
+### 5. Publish the note
 
-After appending, make the outcome discoverable through the recipe catalog/store. Future `recommend_recipes` calls may use the note, but the note cannot satisfy a gate or authorize promotion. The next use must still run fresh paired measurement.
+After appending, publish the outcome through the recipe catalog/store. Future `recommend_recipes` calls may use the note, but it cannot satisfy a gate or authorize promotion. The next use must still run fresh paired measurement.
 
 ## Completion report
 

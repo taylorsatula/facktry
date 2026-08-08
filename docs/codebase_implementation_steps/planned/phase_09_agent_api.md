@@ -9,7 +9,7 @@
 
 ## Goal
 
-The single governed mutation surface for the LLM agent. Every operation the agent can perform exists here with structured results, and **every mutation path passes through govern** — calling `train`/`admit`/`suite` modules directly is not the agent's API.
+Provide the LLM agent's single governed mutation surface. Every operation returns a structured result, and **every mutation path passes through govern**; direct module calls are not the agent API.
 
 ## In scope (`facktry/agent_api.py`)
 
@@ -49,7 +49,7 @@ The single governed mutation surface for the LLM agent. Every operation the agen
 
 ## Fail-closed requirements
 
-- No public function in `agent_api` mutates store state without a govern check on the path (the deny-all sweep test enforces this mechanically).
+- No public `agent_api` function mutates store state without a govern check; the deny-all sweep tests this mechanically.
 - Sealed blindness holds through `measure`/`compare`/`query_*` (re-run the phase 07 blindness assertions against the facade surface).
 
 ## Tests
@@ -63,13 +63,13 @@ The single governed mutation surface for the LLM agent. Every operation the agen
 - Secrets: configured secret name used by an op → value never in any artifact/manifest.
 - `train_smoke` with no backend → typed denial (not success); `train_scale` without smoke → `SmokeGateUnsatisfied` (facade-level; end-to-end in phase 11).
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §14 all `[x]`. Progress summary row 14. Note in §17 skills that API names are now stable enough for pass 2 (phase 17 does the actual revision).
 
 ## Definition of done
 
-Full facade with governed mutations, structured results, inbox loop closed, release pinning gated; tests green; checklist updated.
+The full facade has governed mutations, structured results, a closed inbox loop, and gated release pinning; tests pass.
 
 ## Handoff to phase 10
 

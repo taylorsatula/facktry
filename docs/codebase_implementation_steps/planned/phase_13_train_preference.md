@@ -9,7 +9,7 @@
 
 ## Goal
 
-A preference training method that obeys the pair contract end-to-end and can never trade task correctness for preference margin.
+Implement preference training that enforces the pair contract and cannot trade task correctness for preference margin.
 
 ## In scope (`facktry/train/preference.py` + admit extensions)
 
@@ -48,14 +48,14 @@ A preference training method that obeys the pair contract end-to-end and can nev
 - Reference hash preservation on TrainCard; tampered reference refused.
 - DPO backend registration through the same plugin registry; callbacks fire identically to SFT.
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §10 preference rows `[x]` (method, pair contract, re-measure wiring) + its two preference test rows; §18 preference rows `[x]`. Progress summary row 10 → fully `[x]`.
 
 ## Definition of done
 
-Preference path contract-complete with both §18 preference rows green; checklist updated.
+The preference path satisfies its contract and both §18 preference rows pass.
 
 ## Handoff to phase 14
 
-Phase 14 (play) produces trajectories that can feed both suites and preference-pair harvest. Pair builders should accept play transcripts as input sources (by artifact ref) — keep transcript schema stable.
+Phase 14 produces trajectories for suites and preference-pair harvest. Pair builders should accept play transcripts by artifact ref and keep the transcript schema stable.

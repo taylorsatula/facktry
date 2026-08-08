@@ -9,7 +9,7 @@
 
 ## Goal
 
-Durable, queryable, hash-verified truth for runs, artifacts, objectives, decisions, defects, inbox, budgets, and metrics. Everything later modules know comes from here.
+Provide durable, queryable, hash-verified truth for runs, artifacts, objectives, decisions, defects, inbox, budgets, and metrics.
 
 ## In scope (`facktry/store.py`, plus `facktry/errors.py` if not already present)
 
@@ -38,9 +38,9 @@ Durable, queryable, hash-verified truth for runs, artifacts, objectives, decisio
 - `register_artifact(path, role, producer_run_id, ...) -> Artifact`: sha256 the bytes, move/copy into content-addressed location, index it. **Re-registering with a mismatched expected hash → `StoreError`.** Artifacts with role implying raw private content are refused here at the store layer as a second line of defense (admit is the first): define `SourceClass.PRIVATE_RAW = "private_raw"` as a reserved role that `register_artifact` always rejects.
 - `create_run(...)` / `update_run_status(...)` / manifest writes atomic (write temp + `os.replace`).
 - Metrics: `append_metric(run_id, dict)` appends one JSON line; `tail_metrics(run_id, n)` safe for concurrent tail (append-only, read by line).
-- sqlite index (WAL): tables for mission briefs (brief_id, version, hash, parent_version, objective_ref, created_at), runs (objective_id, mission_brief_hash, status, stage, created_at), artifacts, lineage edges (parent → child + relation), decisions, inbox, pins. Index is a *query cache*: manifests on disk are the truth; provide `rebuild_index()`.
+- sqlite index (WAL) for mission briefs, runs, artifacts, lineage, decisions, inbox, and pins. The index is a *query cache*: manifests on disk are authoritative; provide `rebuild_index()`.
 - Queries (exact list from ADR §7.1): mission briefs and immutable versions; runs by objective/status/stage; parents/children; latest **passing** AdmissionReport for objective; open defects; pending inbox; latest decision; active/frozen objectives; pinned production tuple; metrics tail.
-- Recipe catalog, immutable RecipeStacks, append-only notes, and recommendation read model.
+- Recipe catalog, immutable `RecipeStack`s, append-only notes, and recommendation read model.
 - Deletion policy: `delete_run` exists but raises `StoreError` for protected runs (has children, is a pinned release subject, or is referenced by any decision). MissionBrief versions referenced by an Objective or experiment are never agent-deletable. No agent-facing delete API beyond this guarded one — archival is an overseer filesystem operation, not a store feature.
 
 ## Out of scope
@@ -67,13 +67,13 @@ Durable, queryable, hash-verified truth for runs, artifacts, objectives, decisio
 - Protected-run delete refused; unprotected delete ok.
 - Concurrent metric appender + tailer + sqlite reader threads/processes: no corruption.
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §2 all `[x]`. Progress summary row 2. Note the artifact layout under Notes.
 
 ## Definition of done
 
-Store API complete per above, tests green, checklist updated.
+The store API is complete as specified and its tests pass.
 
 ## Handoff to phase 03
 

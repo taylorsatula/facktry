@@ -9,7 +9,7 @@
 
 ## Goal
 
-Close out: the domain-pack registration mechanism, skills and recipes aligned to the real API/catalog contracts, and a deliberate full-spec audit proving facktry matches its ADR.
+Complete domain-pack registration, align skills and recipes with implemented contracts, and audit conformance to the ADR.
 
 ## Part A — Domain pack mechanism (`facktry/domains/`)
 
@@ -35,7 +35,7 @@ Close out: the domain-pack registration mechanism, skills and recipes aligned to
 
 ## Part D — Conformance sweep (the ADR §14 checklist, verified)
 
-Work ADR §14 success criteria one by one and record evidence:
+Verify each ADR §14 success criterion and record evidence:
 
 1. Complete adaptive elicitation and save a hashed MissionBrief with intent, success case, research pointers, and individual hard-gate approvals; then freeze the hashed objective with gates/budget/baselines/suites — demo via test/fixture, cite test names.
 2. Agent iterates data+train under budget without per-step human ops — scripted end-to-end loop test (fake backends) running control-loop steps 1–9 from ADR §8 in order.
@@ -44,14 +44,14 @@ Work ADR §14 success criteria one by one and record evidence:
 5. Human inbox + CLI pressure — cite phase 09/10 tests.
 6. Pinned ReleaseTuple + reproducible dossier — yield_release + dossier hash reproduction test.
 7. Bare `facktry` situational awareness — cite phase 10 tests.
-8. Curated recipes compose into governed, measured, hashed `RecipeStack`s with append-only use notes — cite recipe parser/composition/governance tests.
+8. Curated recipes compose into governed, measured, hashed `RecipeStack`s with append-only use notes; cite recipe parser/composition/governance tests.
 9. Ancestors hash-unchanged after corrective trains — cite phase 11 test.
 10. **§13.3 / checklist §18: run the entire mandatory test list and check every row green in one pytest run.** Any missing → implement now, do not waive silently.
 11. Every objective and experiment traces to an immutable MissionBrief containing intent, success case, research pointers, and hard-gate approvals.
 
 Also sweep ADR §12 (out of scope): confirm none of the excluded subsystems crept into core. Confirm recipes remain declarative effect specifications, not an ungoverned workflow engine.
 
-### End-to-end loop test (new this phase)
+### End-to-end loop test
 `tests/test_control_loop_e2e.py`: elicit fixture → save MissionBrief → freeze objective (fake suites/backends) → preflight → pin_suites → generate_and_admit → train_smoke → decide(allows scale) → train_scale → select_checkpoint → measure/compare (base/candidate) → decide → human promote via inbox ingest → yield_release. Assert: every transition governed (attempt freeze/experiment without a brief or out-of-order step → typed denial), all artifacts hash-registered, dossier exists, ancestors unchanged, final tuple pinned.
 
 ## Fail-closed requirements
@@ -66,7 +66,7 @@ Also sweep ADR §12 (out of scope): confirm none of the excluded subsystems crep
 - Control-loop E2E above.
 - Final full-suite run clean.
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - §16 all `[x]`; §17 pass-2 rows `[x]`; §17.1 recipe rows `[x]`; **every §18 row `[x]`**; §19 rows `[x]` with one-line evidence citations; all Progress summary rows `[x]`; "Last global review" date bumped.
 

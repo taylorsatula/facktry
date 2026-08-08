@@ -2,7 +2,7 @@
 
 This directory tracks **operator-facing tools** for the facktry Pi session image (`PI_FOUNDATION.md`). It is separate from the harness phases in `codebase_implementation_steps/`.
 
-Harness modules (`store`, `admit`, `train`, `agent_api`, …) live on the ADR track. Tools here are the LLM-callable surfaces the operator uses inside `facktry run` — research, questions, later façades over `agent_api`.
+Harness modules (`store`, `admit`, `train`, `agent_api`, …) live on the ADR track. Tools here are the LLM-callable surfaces inside `facktry run`: research, questions, and future `agent_api` façades.
 
 ## How to use
 
@@ -26,9 +26,9 @@ Harness modules (`store`, `admit`, `train`, `agent_api`, …) live on the ADR tr
 - **Package home:** target `facktry-pi/src/tools/` (and TUI helpers beside them). Until the tree exists, implement against the layout in `PI_FOUNDATION.md` §9.2.
 - **Reference implementations:** Pi upstream examples under `@earendil-works/pi-coding-agent/examples/extensions/` (e.g. `question.ts`, `questionnaire.ts`). Copy patterns, not global install paths.
 - **Interactive UI:** `ctx.ui.custom()` + `@earendil-works/pi-tui` (`Editor`, `Key`, `matchesKey`, theme helpers). `executionMode: "sequential"` when the tool blocks on human input.
-- **Non-TUI:** refuse clearly (`mode !== "tui"`); never hang headless runs waiting for a human.
+- **Human I/O:** refuse clearly when `mode !== "tui"`; never wait for a human in headless runs. Noninteractive tools such as `research` must support print/JSON modes.
 - **Results:** always return model-facing `content[]` text **and** structured `details` for renderers/tests.
-- **No harness bypass:** `questions` does not freeze objectives, save MissionBriefs, admit data, or train. The `elicit` skill collects answers and research context, then calls `save_mission_brief` once at the end. Research tools return **proposals**, not passed gates or curated recipes; the MissionBrief stores only brief summaries plus references.
+- **No harness bypass:** `questions` is a pure human-I/O primitive. The `elicit` skill collects answers and research context, then calls `save_mission_brief` once at the end. Research returns **proposals**, not passed gates or curated recipes; the MissionBrief stores only brief summaries plus references.
 - **Long-running tools:** research-style workers must support abort, progress logs, and headless execution (no TUI required unless the tool is explicitly human I/O).
 
 ## Phase index

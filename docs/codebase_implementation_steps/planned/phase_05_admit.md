@@ -9,7 +9,7 @@
 
 ## Goal
 
-Fail-closed data admission — the only blessed path by which data becomes train-eligible — plus `generate_and_admit`, the single sanctioned synthetic pipeline. No admitted data, no training; this phase makes that physically true.
+Implement fail-closed admission, the only path to train-eligible data, and the sanctioned `generate_and_admit` pipeline. Training requires admitted data.
 
 ## In scope (`facktry/admit/`)
 
@@ -29,7 +29,7 @@ Runs every check from ADR §7.3.1, collects `GateResult`s, emits an `AdmissionRe
 8. **Teacher identity** — synthetic rows must name a teacher; teacher must be the frozen base or an explicit ancestor tuple unless the objective records a self-distill waiver.
 9. **Suite pin** — `for_training=True` requires `govern.suite_pin_required` to pass first.
 
-Reject-reason histogram (per check, counts) is mandatory on the report even when passing. Report includes: input artifact hashes, keep/reject counts, overlap matrix, near-dupe/template stats, mixture deltas, teacher id, transformation policy + seeds, frozen suite hash, gate results, pass/fail. **Train stages later must reference a passing report hash** — expose `store.latest_passing_admission(objective_id)` (already in store queries).
+The report must include a per-check reject histogram even when passing: input artifact hashes, keep/reject counts, overlap matrix, near-dupe/template stats, mixture deltas, teacher id, transformation policy and seeds, frozen suite hash, gate results, and pass/fail. **Train stages must reference a passing report hash**; expose `store.latest_passing_admission(objective_id)`.
 
 ### `generate_and_admit(store, objective_id, plan) -> AdmissionReport`
 ADR §7.3.2 pipeline, exactly this order:
@@ -64,13 +64,13 @@ ADR §7.3.2 pipeline, exactly this order:
 - Mixture floors/caps enforced vs `TargetShape`.
 - `generate_and_admit` end-to-end with fake backend: construction → generate → filter → admit; histogram present; parallel-part merge is order-deterministic (same manifests → same merged hash).
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §5 all `[x]` + its four test rows. §18: leakage, attribution, construction-failure, private-bytes, suite-pin rows `[x]`. Progress summary row 5.
 
 ## Definition of done
 
-Admission is a real gate with a real report; pipeline works against fake backends; tests green; checklist updated.
+Admission is a tested gate with a report; the pipeline works against fake backends.
 
 ## Handoff to phase 06
 

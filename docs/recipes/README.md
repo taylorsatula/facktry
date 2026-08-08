@@ -15,20 +15,20 @@ recipes/
     └── RECIPE.md
 ```
 
-`_template/` is not a catalog entry. The `RECIPE.md` file is human-readable source; the facktry parses it into a `Recipe` artifact when the catalog is available. The instructional body has a stable hash; notes are a separately hashed append-only stream.
+`_template/` is not a catalog entry. Each `RECIPE.md` is human-readable source parsed into a `Recipe` artifact. Instruction content—front matter and instructional sections—has an immutable instruction hash; notes are separately hashed append-only events.
 
 ## Research versus recipes
 
-The isolated `research` worker produces a `RecipeProposal`: bounded evidence and candidate approaches. It does not automatically create or modify a curated recipe. A human or operator may promote a proposal into a reviewed `RECIPE.md`, preserving its references and limitations.
+The isolated `research` worker produces a `RecipeProposal`: bounded evidence and candidate approaches. It never creates or modifies a curated recipe. A human curator may review a proposal into a versioned `RECIPE.md`, preserving its references and limitations.
 
-## Composition and compounding use
+## Retrieval and composition
 
 Retrieve recipes at substantive interventions, including planning, training correction, and human-inbox reasoning. `recommend_recipes` ranks candidates from the target effect, Objective constraints, defects, notes, and prior outcomes.
 
-Compose compatible candidates into an immutable `RecipeStack` containing exact versions, ordering, overrides, conflicts, and validation. Record its hash on governed runs and releases, then append a structured use note—including failures and non-promotions—for future recommendations. Notes never replace fresh measurement or governance.
+Compose compatible candidates into an immutable `RecipeStack` containing exact recipe versions and hashes, ordering, resolved overrides, conflict decisions, allocation, and validation requirements. Record its hash on governed runs and releases, then append a structured use note—including failures and non-promotions—for future recommendations. Notes never replace fresh measurement or governance.
 
 ## Notes
 
-The `## Recipe Notes` section at the bottom of each recipe is append-only institutional memory. A note records a subsequent use, context, observed effect, regressions, evidence references, and recommendation. Editing the recipe's instructions requires a new recipe version; appending a note does not silently change the recipe's operational meaning.
+`## Recipe Notes` is an append-only subsequent-use record. Each note records context, observed effect, regressions, evidence references, and recommendation. Changing instruction content requires a new recipe version; appending a note leaves the instruction hash and prior version's operational meaning unchanged.
 
-Do not put secrets, raw private examples, or identifying data in recipe files or notes.
+Do not include secrets, private data—including raw examples or prompts—or identifying information in recipe files or notes.

@@ -9,7 +9,7 @@
 
 ## Goal
 
-Load a full `ReleaseTuple`, apply versioned guards, expose raw + guarded channels, support canary and one-call rollback. Serving is where the interface lock becomes operational truth.
+Load and serve a full `ReleaseTuple` with versioned guards, raw/guarded channels, canary, and one-call rollback.
 
 ## In scope (`facktry/serve/`)
 
@@ -39,7 +39,7 @@ Load a full `ReleaseTuple`, apply versioned guards, expose raw + guarded channel
 
 ## Fail-closed requirements
 
-- Partial/tampered tuple → no production load.
+- Partial or tampered tuples cannot load in production.
 - Flip without authorizing decision/policy → typed refusal.
 - Guard hash drift between decide-time evidence and serve-time load → `CompatMismatch` unless deliberately comparing channels.
 
@@ -53,13 +53,13 @@ Load a full `ReleaseTuple`, apply versioned guards, expose raw + guarded channel
 - **Rollback restores previous pinned tuple** (§18 row): pin A → flip B → rollback → pin A again, verified by hash.
 - Quiet logging: private sentinel text in a request never appears in logs (summaries/hashes only).
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §12 all `[x]` + rollback test row; §18 rollback row `[x]`. Progress summary row 12.
 
 ## Definition of done
 
-Tuple serving with guards, dual channels, canary, flip, rollback all real and tested; checklist updated.
+Tuple serving with guards, dual channels, canary, flip, and rollback is real and tested.
 
 ## Handoff to phase 17
 

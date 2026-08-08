@@ -9,7 +9,7 @@
 
 ## Goal
 
-The control plane's denial machinery. After this phase, budget exhaustion, policy denial, interface drift, and unsafe machine state are real, typed refusals — not conventions.
+Implement typed, fail-closed refusals for budget exhaustion, policy denial, interface drift, and unsafe machine state.
 
 ## In scope (`facktry/govern.py`)
 
@@ -51,7 +51,7 @@ Deny generate/admit-for-train when the objective has no frozen sealed suite hash
 
 ## Fail-closed requirements
 
-- Every denial is a typed exception with reason; no boolean-return-and-continue APIs on the mutation path.
+- Every denial is a typed exception with a reason; mutation paths never use boolean-return-and-continue APIs.
 - Budget charge is atomic under concurrent charges (single-writer transaction; test with threads).
 - Unknown policy capability → deny.
 
@@ -65,13 +65,13 @@ Deny generate/admit-for-train when the objective has no frozen sealed suite hash
 - `suite_pin_required`: denied unpinned, passes pinned (**checklist §18 suite pin row**, shared with admit phase).
 - Preflight: passes on clean tmp workspace; refuses on disk-floor violation (simulate via monkeypatch); broken-GPU probe degrades to report entry.
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §4: all `[x]` except GPU-exclusivity may be `[x]` once config+probe detection works with tests; the four govern tests `[x]`. Progress summary row 4. Note under §10 tests that smoke/scale end-to-end reruns in phase 11.
 
 ## Definition of done
 
-Typed denial machinery complete, tests green, checklist updated.
+Typed denial machinery is complete and tested.
 
 ## Handoff to phase 05
 

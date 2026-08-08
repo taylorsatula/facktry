@@ -9,7 +9,7 @@
 
 ## Goal
 
-Produce trajectories and episodes — for harvest into training data and for multi-turn/tool suites — with hard runner-side control and private world state kept out of subject prompts and artifacts.
+Produce capped trajectories and episodes for training harvest and multi-turn/tool suites while keeping private world state out of subject prompts and open artifacts.
 
 ## In scope (`facktry/play/`)
 
@@ -36,7 +36,7 @@ Core ships `EchoWorld`/`CounterWorld` test fixtures (deterministic toy worlds); 
 
 ### Integration
 - Episodes export as `replay`/`synthetic`-class artifacts → admit path (phase 05) for harvest.
-- Suite `multi_turn`/`tool_episode` cases may name a world + scenario; phase 07's runner already supports transcripts — wire the bridge here (suite case → `run_episode` → verify oracles on transcript).
+- Suite `multi_turn`/`tool_episode` cases may name a world and scenario. Wire them through `run_episode` and verify oracles on the transcript.
 
 ## Out of scope
 
@@ -44,7 +44,7 @@ Core ships `EchoWorld`/`CounterWorld` test fixtures (deterministic toy worlds); 
 
 ## Fail-closed requirements
 
-- Turn cap is non-negotiable runner behavior.
+- The runner-side turn cap is mandatory.
 - Private-state leak = defect: test asserts oracle-state values appear in no persisted transcript, no subject prompt log, no open artifact.
 
 ## Tests
@@ -56,13 +56,13 @@ Core ships `EchoWorld`/`CounterWorld` test fixtures (deterministic toy worlds); 
 - Analyzer outputs deterministic on fixture transcripts; realism scorecard separate artifact from subject scorecard.
 - Suite bridge: a `tool_episode` case executes through play and produces a normal scorecard.
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §8 all `[x]`. Progress summary row 8.
 
 ## Definition of done
 
-Episodes run capped and leak-free; transcripts feed admit and suites; tests green; checklist updated.
+Episodes run capped and leak-free; transcripts feed admit and suites; tests pass.
 
 ## Handoff to phase 15
 

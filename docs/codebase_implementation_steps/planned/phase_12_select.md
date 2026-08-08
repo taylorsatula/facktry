@@ -9,7 +9,7 @@
 
 ## Goal
 
-Checkpoint choice as constrained optimization over gate evidence — never "last step wins," never "min loss wins."
+Select checkpoints by gate-constrained optimization, never by last step or loss alone.
 
 ## In scope (`facktry/select.py`)
 
@@ -47,14 +47,14 @@ Candidates considered, gate matrix (checkpoint × hard/soft gate, observed/thres
 - Gate matrix artifact: all candidates × gates present, rationale string names the deciding objectives.
 - `build_candidate_tuple`: adapter swapped, interface components hash-identical to pins, `tuple_hash` correct; `compat_check` candidate-vs-base passes with `allowed_diffs={"adapter"}`.
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §11 all `[x]` + test row; §18 select row `[x]`. Progress summary row 11.
 
 ## Definition of done
 
-Constrained selection with real ranking artifacts; candidate tuple construction respects interface lock; tests green; checklist updated.
+Selection produces ranking artifacts, and candidate tuple construction respects the interface lock; tests pass.
 
 ## Handoff to phase 13
 
-Phase 13 (preference) reuses select + the full measure loop. Ensure ranking artifacts tolerate checkpoint sets produced by preference runs (same TrainCard/checkpoint record shape).
+Phase 13 reuses select and the full measure loop. Ranking artifacts must accept preference-run checkpoint sets with the same TrainCard/checkpoint shape.

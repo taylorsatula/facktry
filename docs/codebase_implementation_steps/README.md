@@ -1,6 +1,6 @@
 # Facktry — Codebase Implementation Steps
 
-This directory breaks the ADR (`/home/admin/facktry/docs/ADR.md`) into sequential, individually-completable implementation phases. **Do not one-shot the codebase.** Finish one phase, verify its definition-of-done, update `IMPLEMENTATION_CHECKLIST.md` in the same change set, then move to the next.
+This directory decomposes the ADR (`/home/admin/facktry/docs/ADR.md`) into sequential implementation phases. **Do not implement the codebase in one pass.** Complete a phase, verify its definition of done, update `IMPLEMENTATION_CHECKLIST.md` in the same change set, then continue.
 
 **Operator runtime (parallel track):** the Pi session image / `facktry run` foundation is specified in [`../PI_FOUNDATION.md`](../PI_FOUNDATION.md). It is **not** one of the harness phases below; it may proceed in parallel (F0+) and must not mark harness checklist items done or bypass future `govern`.
 
@@ -23,7 +23,7 @@ Phase docs live in three directories reflecting their state:
 | `active/` | Currently in progress. Move the doc here when you mark its Status `[~]`. |
 | `complete/` | Definition of done met, tests green, checklist updated. Move the doc here when you mark its Status `[x]`. |
 
-**Workflow:** when starting a phase, `mv planned/phase_NN_*.md active/`. When done, `mv active/phase_NN_*.md complete/`. Only one doc should be in `active/` at a time.
+**Workflow:** when starting a phase, `mv planned/phase_NN_*.md active/`; when done, `mv active/phase_NN_*.md complete/`. Only one doc should be in `active/` at a time.
 
 ## Shared conventions (binding for all phases)
 

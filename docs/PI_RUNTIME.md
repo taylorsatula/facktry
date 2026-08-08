@@ -1,8 +1,10 @@
 # Facktry Pi Runtime
 
-## Do we duplicate Pi?
+> Orientation summary. `PI_FOUNDATION.md` governs operator-host implementation; `ADR.md` governs harness behavior.
 
-No. **Do not copy Pi's source code.** Facktry should use Pi as a pinned npm dependency and provide a thin operator-specific application around its SDK.
+## Pi integration boundary
+
+Facktry must not copy Pi's source code. It must use Pi as a pinned npm dependency and provide a thin operator application around its SDK.
 
 ## Architecture
 
@@ -38,7 +40,7 @@ Do **not** use Pi's default ambient discovery unchanged. It can load:
 - project `.pi/extensions`;
 - global/project skills and prompts.
 
-Facktry should construct a closed loader that exposes only Facktry resources:
+Facktry must construct a closed loader that exposes only Facktry resources:
 
 ```text
 Facktry prompt
@@ -70,7 +72,7 @@ facktry-pi/
   tests/
 ```
 
-The current Pi installation is version `0.84.0` and requires Node `>=22.19.0`; Facktry should pin a compatible version rather than depend on the globally installed copy.
+Facktry must pin a compatible Pi dependency and Node engine range rather than depend on the globally installed copy.
 
 ## Runtime flow
 
@@ -104,4 +106,4 @@ Research is a second isolated Pi session—preferably nested with its own sessio
 - Tool configuration example: `/home/admin/.local/lib/node_modules/@earendil-works/pi-coding-agent/examples/sdk/05-tools.ts`
 - Subagent example: `/home/admin/.local/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/subagent/`
 
-The right mental model is: **Facktry is an application/image built on Pi, not a fork of Pi.**
+Facktry is an operator application/image built on a pinned Pi dependency, not a Pi fork.

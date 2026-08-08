@@ -9,7 +9,7 @@
 
 ## Goal
 
-Frozen, content-hashed eval sets with a blind custody boundary for sealed splits, pinned execution, and paired comparison across ReleaseTuples. This is the measurement backbone every later decision stands on.
+Implement frozen, content-hashed suites with sealed custody, pinned execution, and paired `ReleaseTuple` comparison.
 
 ## In scope (`facktry/suite/`)
 
@@ -34,17 +34,17 @@ Frozen, content-hashed eval sets with a blind custody boundary for sealed splits
 - Test must *prove* blindness: enumerate the planner-facing API surface and assert sealed case stems/private state/transcripts appear in no return value.
 
 ### `compare(store, suite_ref, tuples: dict[str, ReleaseTuple], backend_factory, margins) -> CompareReport`
-- Runs the same suite (same hash, seeds, decode) on each tuple: **base**, **ancestor** (if any), **candidate**, **production wrapper** (if any) — the compare set is validated against the objective's baselines; missing `base`/`candidate` is an error.
+- Runs the same suite (same hash, seeds, decode) on **base**, **ancestor** (if any), **candidate**, and **production tuple/wrapper** (if any). The compare set must match the objective's baselines; missing `base` or `candidate` is an error.
 - Emits paired deltas per dimension, slice tables, and no-worse-than verdicts vs objective margins.
 
 ## Out of scope
 
-- `play`-driven trajectory cases (phase 14 adds the producer; suite's `multi_turn`/`tool_episode` execution here already supports transcripts).
+- `play`-driven trajectory cases; phase 14 adds the producer.
 - Judge-scored dimensions (phase 15; scorecard has the slot, marked `n/a` until calibrated judge exists).
 
 ## Fail-closed requirements
 
-- Execution without pinned seeds/decode/subject tuple → refuse.
+- Unpinned seeds, decode, or subject tuple → typed refusal.
 - Suite content hash recomputed at load; mismatch → `StoreError`.
 - Sealed leakage = defect (ADR §13.1): the blindness test is mandatory, not aspirational.
 
@@ -58,13 +58,13 @@ Frozen, content-hashed eval sets with a blind custody boundary for sealed splits
 - Multi-turn case executes with turn cap respected (fake backend that never stops → capped).
 - Suite-pin integration: `pin_suites` flips govern's gate from deny to allow (§18 shared row final wiring).
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §7 all `[x]` + its test rows; §18 sealed/compare/suite-pin rows confirmed `[x]`. Progress summary row 7.
 
 ## Definition of done
 
-Sealed custody is demonstrably blind; compare is paired and margin-aware; tests green; checklist updated.
+Sealed custody is demonstrably blind; compare is paired and margin-aware; tests pass.
 
 ## Handoff to phase 08
 

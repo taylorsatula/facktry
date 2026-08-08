@@ -16,15 +16,15 @@
 
 ## 1. Purpose
 
-Facktry is an autonomous training harness. A human overseer states a mission, budget, hard principles, and final promote authority. A skilled LLM agent then iterates data construction, training, and evaluation inside policy until the mission’s gates pass or the budget is exhausted. The human does not drive trainers, write stage CLIs, or babysit loss curves. The human monitors live state, answers judgments that cannot be automated, and authorizes promotion.
+Facktry is an autonomous training harness. A human overseer states a mission, budget, hard principles, and final promote authority. A skilled LLM agent then iterates data construction, training, and evaluation inside policy until the mission’s gates pass or the budget is exhausted. The human does not drive trainers or write stage CLIs. The human monitors live state, answers judgments that cannot be automated, and authorizes promotion.
 
-Natural-language intent is not yet an executable objective. Before any objective is frozen, facktry runs an adaptive `elicit` stage: the operator uses structured human questions, researches between question volleys when useful, and assembles a complete, saved `MissionBrief`. Every objective and experiment—including a data investigation that never touches weights—requires that brief as part of its provenance.
+Natural-language intent is not an executable objective. Before freezing an Objective, facktry runs adaptive `elicit`: the operator uses structured human questions, may research between volleys, and saves a complete `MissionBrief`. The brief is provenance for every objective and experiment, including data-only investigations.
 
 **Deliverable of a successful model objective:** a pinned `ReleaseTuple` (the full shippable stack: base weights, adapter if any, tokenizer, chat template, prompt policy, tool/state schema, decode defaults, guard policy) plus a `Decision` whose cited hard gates are reproducible from content-hashed artifacts alone.
 
 **Deliverable of a successful data-only objective:** admitted corpus artifacts plus a `Decision`. Corpus work is otherwise intermediate fuel for model objectives.
 
-Facktry compounds model-development knowledge: the operator retrieves recipes during planning, training, correction, and human reasoning, then records outcomes for future selection. Model changes remain explicit, hashed, evaluated, and governed.
+Facktry compounds model-development knowledge through recipe retrieval and recorded outcomes. Model changes remain explicit, hashed, evaluated, and governed.
 
 **Words in, model out** is the default shape for finetune objectives: harvest or synthesize data → admit → smoke train → scale train → select checkpoint → paired sealed measure → decide → yield `ReleaseTuple`.
 
@@ -32,9 +32,7 @@ Facktry compounds model-development knowledge: the operator retrieves recipes du
 
 ## 2. Relationship to prior experiment work
 
-A prior experiment factory on this machine demonstrated content-hashed runs, manifests, lineage, metrics streams, disposable local inference servers, and a trajectory-validation library. It did **not** close an autonomy loop: no frozen mission object, no fail-closed data admission as a prerequisite to train, no smoke-then-scale governor, no multi-gate checkpoint selection, no sealed blind eval custody, no defect memory, no human inbox, no promote/canary as first-class decisions, and no objective-centric live monitor.
-
-Facktry is **greenfield**. It does not import, share registries with, or subclass prior experiment implementations. Behavioral ideas worth preserving (hash everything that affects a decision; lineage; append-only metrics; read-only observation separate from mutation) are restated in this ADR as facktry requirements. Engineering invariants from `SHARED_KNOWLEDGE.md` are folded into doctrine and module contracts below. Host-specific paths, voice case-study constants, and one-off hyperparameters are **not** part of facktry.
+Prior experiment work is not a facktry dependency. Facktry is a new implementation: it does not import, share registries with, or subclass prior experiment code. Hashing, lineage, append-only metrics, and read-only observation are specified here. Host-specific paths, case-study constants, and one-off hyperparameters are excluded.
 
 ### Repository structure
 
@@ -79,13 +77,13 @@ These are fail-closed laws. An implementation that violates them is incorrect ev
 3. **Scores change control flow or are labeled diagnostic.** Diagnostic metrics must not select checkpoints or authorize promote.
 4. **Admit before train; smoke before scale; measure before promote.** Each arrow is enforced by `govern`, not by convention.
 5. **Raw and guarded are both first-class.** Serving retries and filters must not hide unguarded model failures in any `Decision`.
-6. **Paired comparison for model decisions.** Candidate is judged against base and, when they exist, ancestor and production wrapper—same suite hash, seeds, state, and decode config.
+6. **Paired comparison for model decisions.** Candidate is judged against base and, when they exist, ancestor and production tuple/wrapper—same suite hash, seeds, state, and decode config.
 7. **Interface lock.** Train, eval, and serve load one `ReleaseTuple` identity. Drift is a failed gate (`compat_check`).
 8. **Sealed suites are blind to the planner.** Sealed execution returns aggregates and `GateResult`s. Case text from sealed suites must not enter agent planner context.
 9. **Preserve ancestors.** Every train attempt is a new run directory. Never overwrite base, ancestor adapters, or prior pinned releases.
-10. **Human only at irreducible boundaries.** Taste, research fit, borderline adjudication, policy break-glass, final promote. Not loss curves. The CLI surfaces those boundaries; it does not micro-drive training.
+10. **Human only at irreducible boundaries.** Human input covers taste, research fit, borderline adjudication, policy break-glass, and final promotion—not loss curves. The CLI surfaces these boundaries; it does not drive training.
 11. **Domain logic in domain packs.** Core remains task-agnostic. No SMS-, trajectory-edit-, or customer-specific rules in core modules.
-12. **Rugged composition.** One control loop. Few modules. Thin protocols. No parallel type zoos, workflow engines, or plugin religions that do not change a `Decision`.
+12. **Rugged composition.** One control loop, few modules, and thin protocols. Do not add parallel type systems, workflow engines, or plugins that do not change a `Decision`.
 13. **Bare `facktry` shows live truth.** Auto-focus active objective/run/inbox. No mandatory registry-path or run-id flags for the common case.
 14. **Optimize the stack, not only weights.** Model + data + prompt/interface + serve/guards are one release. Good loss with a wrong template or guard is failure.
 15. **Private data never becomes an artifact.** Raw or identifying text is memory-scoped and local. Artifacts hold hashes, counts, policy ids, redacted derivatives, aggregates.
@@ -96,13 +94,13 @@ These are fail-closed laws. An implementation that violates them is incorrect ev
 20. **Multi-turn for dialogue.** Conversational objectives require multi-turn suites and play; single-turn probes alone are insufficient for measure or promote.
 21. **Elicit before freeze.** Natural-language missions must pass adaptive elicitation before freeze. The operator follows the `elicit` skill’s outline, chooses the question path, uses the structured questions tool for human input, and may use isolated research between volleys. The human approves every proposed hard gate individually. Research is proposal evidence, not a gate.
 22. **Intent is durable provenance.** The completed MissionBrief is saved as an immutable version before `freeze_objective`; it records the user’s request, success case, research pointers, and gate approvals. Session chat alone never satisfies this requirement.
-23. **Recipe-guided compounding.** During planning, training, correction, and human-interactive reasoning, the operator should retrieve relevant recipes, notes, defects, and prior outcomes; successful or failed uses append structured evidence back to the recipe book. Catalog growth improves candidate selection but never replaces fresh measurement, hard gates, or human authority.
+23. **Recipe-guided compounding.** During planning, training, correction, and human-interactive reasoning, the operator should retrieve relevant recipes, notes, defects, and prior outcomes. Every governed use must append structured outcome evidence. Catalog growth improves candidate selection but never replaces fresh measurement, hard gates, or human authority.
 
 ---
 
 ## 5. Core objects
 
-Serializable, boring, hashed when they affect decisions. Do not grow ontology for its own sake; every type below participates in control flow or provenance.
+Core objects are serializable and hashed when they affect decisions. Every type below participates in control flow or provenance.
 
 ### 5.0 `MissionBrief`
 
@@ -155,7 +153,7 @@ Required fields:
 | `intent` | Human-readable mission |
 | `deliverable` | `release_tuple` \| `admitted_corpus` \| both |
 | `gates[]` | Hard/soft/human/diagnostic gates with thresholds, directions, suite or checker refs |
-| `constraints` | Privacy tier, self-distill waiver flag (default false), interface pins, offline-only, max adapter rank, etc. |
+| `constraints` | Privacy tier, self-distill waiver flag (default false; absent waiver means `no_self_distill=true`), interface pins, offline-only, max adapter rank, etc. |
 | `budget` | Wall time, GPU-hours, judge tokens, max smoke runs, max scale runs |
 | `baselines` | `ReleaseTuple` refs: `base` required for model objectives; `ancestor` and `production` when they exist |
 | `suites` | Dev and sealed suite refs **with content hashes** |
@@ -346,7 +344,7 @@ Include: input artifact hashes; keep/reject counts; **reject-reason histogram**;
 
 A `Recipe` is a versioned, evidence-backed specification for creating a named behavioral effect in a model stack. It is not merely a research recommendation, prompt fragment, hyperparameter dump, or guarantee. Its ingredients may span data, training, prompt/interface, serving, and evaluation because facktry optimizes the released stack rather than weights in isolation.
 
-The canonical human-authored source is `<recipe-id>/RECIPE.md` under `docs/recipes/`. The facktry parses it into a `Recipe` artifact with a stable instruction hash over front matter and instructional sections, plus an append-only notes head/hash for the notes stream. A full source snapshot may also be registered for audit. A recipe source must declare:
+The canonical human-authored source is `<recipe-id>/RECIPE.md` under `docs/recipes/`. The facktry parses it into a `Recipe` artifact with a stable instruction hash over front matter and instructional sections, plus an append-only notes head/hash for the notes stream. A full source snapshot may also be registered for audit. Each recipe source must declare:
 
 - stable id, version, title, status, target effect(s), and observable measures
 - scope and applicability: model families, domains, interfaces, prerequisites, and incompatibilities
@@ -408,7 +406,7 @@ Requirements:
 - Atomic manifest writes.
 - Queries at minimum: get/list mission briefs and immutable versions; get/list runs by objective/status/stage; parents/children; get/list/version recipes and append recipe notes; recommend recipes by target effect, objective, defects, and prior outcomes; get/list RecipeStacks; latest passing `AdmissionReport` for objective; open defects; pending inbox; latest decision; active/frozen objectives; pinned production tuple; metrics tail for a run.
 - **No agent-facing delete** of runs that are parents, pinned releases, or referenced by decisions, nor of MissionBrief versions referenced by objectives or experiments. Archival may exist as an explicit overseer operation outside the agent tool allowlist.  
-- Workspace discovery: `FACKTRY_HOME` if set, else walk cwd/parents for `.facktry/`, else create `.facktry/` in cwd per policy. Humans and agents must land on the same workspace without flag gymnastics.
+- Workspace discovery: `FACKTRY_HOME` if set, else walk cwd/parents for `.facktry/`, else create `.facktry/` in cwd per policy. Humans and agents must resolve the same workspace without extra flags.
 
 ### 7.2 `objective`
 
@@ -487,9 +485,9 @@ Requirements:
 - **Sealed** suites: executed via blind runner. Planner API returns scorecards/aggregates/gate results only—not case stems, private state, or full transcripts. Implementation must make accidental sealed leakage difficult (separate process or equivalent custody boundary).
 - Execution pins seeds, decode config, and subject `ReleaseTuple`.
 - `compare(tuples, suite)` runs the same suite on each tuple and emits paired deltas, slice tables, and no-worse-than evaluations against objective margins.
-- Compare set for model decisions: **base**, **ancestor** (if any), **candidate**, **production wrapper** (if any).
+- Compare set for model decisions: **base**, **ancestor** (if any), **candidate**, **production tuple/wrapper** (if any).
 
-**Scorecard dimensions** (report separately; do not collapse into one vanity score):
+**Scorecard dimensions** (report separately; do not collapse into one aggregate score):
 
 1. Task/action correctness  
 2. Unsupported claim / hallucinated-state rate  
@@ -582,7 +580,7 @@ Emit a ranking artifact: candidates considered, gate matrix, winner, rationale. 
 
 ### 7.10 `govern`
 
-**Job:** control plane. If govern can be bypassed by calling `train` directly, the design is wrong—mutation paths go through govern checks.
+**Job:** control plane. Mutation paths must go through `govern`; direct calls to `train` or other mutators are not agent paths.
 
 Responsibilities:
 
@@ -595,7 +593,7 @@ Responsibilities:
 | `policy` | Allow/deny tools including `data.use_private`, remote send, promote flip |
 | `suite_pin` | Deny generate/admit-for-train if sealed suite not frozen for objective |
 
-Canonical interface is pinned on the objective. Prompt variants may exist for robustness testing; they are not a substitute for data diversity. Safety instructions in prompts stay short enough that they do not become the model’s learned style; enforcement stays in verify/serve.
+Canonical interface pins live on the Objective. Prompt variants may test robustness but do not replace data diversity. Keep safety instructions short; enforce safety in verify/serve.
 
 ### 7.11 `serve`
 
@@ -636,7 +634,7 @@ Map common failures to intervention classes to feed defects (examples):
 
 **Job:** stable facade for the LLM agent. This is the mutation API.
 
-Required operations (names may be bikesheded but capabilities may not):
+Required operations (names may vary, but capabilities may not):
 
 | Operation | Governed effects |
 |---|---|
@@ -665,13 +663,11 @@ All operations return structured results (status, artifact refs, errors). Secret
 
 ### 7.14 `watch` (human CLI)
 
-**Job:** situational awareness and narrow human response. First-class module—not a afterthought script.
+**Job:** situational awareness and narrow human response. This is a first-class module, not an afterthought script.
 
-#### 7.14.1 What to learn from the prior experiment CLI—and what to refuse
+#### 7.14.1 Boundaries
 
-**Carry forward:** registry-backed state; lineage; append-only metrics streams; read-only live rendering; machine probes (GPU, disk, process heartbeat); separation of mutation from observation.
-
-**Refuse:** bare invocation that does nothing useful; mandatory `--watch-run` / registry path for common case; subprocess hop to a second entrypoint for default live view; experiment-specific dashboard JSON as a prerequisite to see anything; run-list-centric UI without objective, decision, defect, and inbox.
+The monitor uses registry-backed state, lineage, append-only metrics, read-only rendering, machine probes, and separate mutation/observation paths. It must refuse a useless bare invocation, mandatory run/registry flags for common monitoring, a subprocess hop for default live view, per-domain dashboard JSON as a prerequisite, and a run-list-only view without objective, decision, defect, and inbox context.
 
 #### 7.14.2 Commands
 
@@ -1013,7 +1009,7 @@ Facktry is complete for its stated purpose when all of the following hold:
 
 **Positive:** Closed autonomy loop; objective measurement; model-out as first-class product; agent-native mutation; human-native monitor; compounding recipe memory that makes intervention selection improve over time; domain extensibility without core rot; private-data discipline; anti-self-distillation defaults.
 
-**Negative:** Sealed custody, interface locking, and fail-closed govern add real implementation work. Agents cannot “just train.” Humans must freeze gates carefully or the loop will correctly optimize the wrong contract. Monitor layout is opinionated.
+**Negative:** Sealed custody, interface locking, and fail-closed govern add implementation work. Agents cannot invoke training outside the governed path. Humans must freeze gates carefully or the loop will optimize the wrong contract. Monitor layout is opinionated.
 
 **Neutral:** Smaller conceptual surface than a general ML platform. CLI is for watching and narrow response, not for rebuilding a stage-taxonomy cockpit.
 
@@ -1071,6 +1067,6 @@ Facktry is complete for its stated purpose when all of the following hold:
 
 ## 18. Closing rule
 
-When uncertain, preserve **fail-closed gates** and the **control loop**. Do not start an experiment without a saved MissionBrief. Do not add modules that do not change a `Decision`. Do not remove gates to make a demo green. Do not re-litigate invariants in Appendix B—implement them.
+When uncertain, preserve **fail-closed gates** and the **control loop**. Do not start an experiment without a saved MissionBrief. Do not add modules that do not change a `Decision`. Do not remove gates to make a demo pass. Implement the invariants in Appendix B.
 
 This ADR is the implementation reference. Build facktry to it.

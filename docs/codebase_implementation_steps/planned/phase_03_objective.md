@@ -9,7 +9,7 @@
 
 ## Goal
 
-Save a complete, versioned `MissionBrief`, then freeze a mission into a hashed, immutable `Objective`. The freeze lint is the first fail-closed gate in the system: an incomplete or ungrounded mission must never enter the control loop.
+Save a complete, versioned `MissionBrief`, then lint and freeze a hashed, immutable `Objective`. Incomplete or ungrounded missions must not enter the control loop.
 
 ## In scope (`facktry/objective.py`)
 
@@ -19,7 +19,7 @@ Save a complete, versioned `MissionBrief`, then freeze a mission into a hashed, 
 - `show_mission_brief(store, brief_id, version=None) -> dict` — human/agent-readable dossier view.
 - `list_mission_briefs(store, objective_id=None)` — newest saved versions first.
 - Saved MissionBriefs retain recipe considerations and human tradeoffs as planning provenance.
-- `lint_objective(obj: Objective) -> list[LintViolation]` — pure function, returns all violations (don't stop at first).
+- `lint_objective(obj: Objective) -> list[LintViolation]` — pure; returns every violation.
 - `freeze_objective(store, obj) -> FrozenObjective` — runs lint; on any violation raises `ObjectiveLintError` carrying all violations; otherwise persists canonical bytes + content hash via store and registers it as active/frozen.
 - `load_objective(store, objective_id) -> Objective` — reads bytes, **verifies hash before deserialize**, `StoreError` on mismatch.
 - `show_objective(store, objective_id) -> dict` — human/agent-readable view.
@@ -60,14 +60,14 @@ Save a complete, versioned `MissionBrief`, then freeze a mission into a hashed, 
 - Supersede creates new id, links old, old bytes unchanged (hash equality before/after).
 - `list_objectives` ordering for auto-focus.
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §3 all `[x]`. Progress summary row 3.
 
 ## Definition of done
 
-Lint/freeze/load/supersede/list all implemented, tests green, checklist updated.
+Lint, freeze, load, supersede, and list are implemented and tested.
 
 ## Handoff to phase 04
 
-Phase 04 (govern core) consumes frozen objectives for budget/policy checks. Expose `objective.policy` and `objective.budget` as already-typed structures govern can read without re-parsing.
+Phase 04 consumes frozen objectives for budget and policy checks. Expose `objective.policy` and `objective.budget` as typed structures; govern must not re-parse them.

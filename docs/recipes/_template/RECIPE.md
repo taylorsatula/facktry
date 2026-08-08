@@ -17,15 +17,15 @@ conflicts: []
 
 # Recipe: <effect name>
 
-> **Definition:** A recipe is a versioned, evidence-backed specification for creating a named behavioral effect in a model stack.
+> Use the recipe contract in [`../README.md`](../README.md).
 
 ## Effect
 
-Describe the desired observable behavior. State what success looks like and what this recipe does **not** promise.
+Describe the observable target effect, its success measure, non-goals, and unacceptable regressions.
 
 ## Mechanism
 
-Explain why the ingredients should create the effect. Identify whether the leverage is expected to come from data, training, prompt/interface, serving, or their combination.
+Explain the mechanism and identify whether leverage comes from data, training, prompt/interface, serving, or a combination.
 
 ## Ingredients
 
@@ -59,49 +59,49 @@ Explain why the ingredients should create the effect. Identify whether the lever
 
 ## Procedure
 
-Describe the ordered, governed steps for instantiating this recipe. This is a plan for existing facktry operations, not permission to bypass them.
+Describe the ordered, governed steps for instantiating this recipe. This sequence uses existing facktry operations and does not bypass them.
 
 0. Retrieve related recipes, defects, and prior use notes; record why this recipe or stack fits the target.
-1. Prepare or generate ingredients.
-2. Admit every persisted training artifact.
+1. Confirm the saved MissionBrief. Before freeze, resolve any RecipeStack into the Objective; for an existing run, confirm the frozen Objective and selected stack.
+2. Prepare or generate ingredients; admit every persisted training artifact.
 3. Run smoke training and its checks.
-4. Run scale training only when govern allows it.
-5. Measure the intended effect and regressions against pinned baselines.
+4. Run scale training only when the governed decision allows it.
+5. Run paired sealed measurement against pinned baselines.
 6. Decide whether to keep, correct, hold, or retire the recipe use.
 
 ## Tradeoffs and failure modes
 
-List likely regressions, style bleed, incompatibilities, diminishing returns, and known failure signatures. Link each important claim to evidence where possible.
+List regressions, style bleed, incompatibilities, diminishing returns, and failure signatures. Link each material claim to a stable evidence reference; label unsupported mechanisms as hypotheses.
 
 ## Evidence and tested uses
 
 - Source papers, docs, code, or prior runs:
 - Tested base models and interface hashes:
-- Known successful configurations:
-- Known unsuccessful configurations:
+- Measured successful configurations:
+- Measured unsuccessful or inconclusive configurations:
 
 ## Recipe interactions
 
-Describe recipes this combines well with, conflicts with, or must follow. Explain how overlap is resolved when ingredients target the same behavior.
+Describe compatible recipes, conflicts, required ordering, and overlap resolution when ingredients target the same behavior.
 
 ## Provenance
 
-- Author / curator:
+- Curator:
 - Created:
-- Last instruction change:
+- Last instruction change (not note append):
 - Research proposal refs:
 - Related artifact and run refs:
 
 ## Recipe Notes
 
-Append notes; do not rewrite or delete earlier entries. Notes record experience using the recipe and do not change its instructions. Do not include secrets, raw private examples, or identifying data.
+Append notes below; do not rewrite, reorder, or delete prior entries. Notes do not change instruction content or its instruction hash. Do not include secrets, private data, or identifying information.
 
 ### <YYYY-MM-DD> — <run-id> — <short outcome>
 
-- **Context:** Objective, base model, human decisions, and surrounding recipe stack.
-- **Change:** Parameters or adaptations used.
-- **Observed effect:** Measured result for the target effect.
-- **Regression / failure:** What worsened or failed, if anything.
-- **Evidence:** Scorecard, decision, or artifact refs.
-- **Recommendation:** Keep, alter, avoid, or investigate.
+- **Context:** Objective, base model, human decisions, and surrounding RecipeStack.
+- **Change:** Parameters, adaptations, or interaction with other recipes.
+- **Observed effect:** Measured target-effect result, or `not measured`.
+- **Regression / failure:** What worsened, failed, or remained unknown.
+- **Evidence:** Scorecard, Decision, TrainCard, artifact, or defect refs.
+- **Recommendation:** Keep, alter, avoid, retire, or investigate.
 - **Confidence:** low | medium | high

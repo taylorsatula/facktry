@@ -9,7 +9,7 @@
 
 ## Goal
 
-Every core object from ADR §5 exists as a typed, serializable, hashable dataclass. These are the vocabulary all later modules speak; getting field names and enums right now prevents churn.
+Define every ADR §5 core object as a typed, serializable, hashable dataclass. These types are the contracts for later modules.
 
 ## In scope
 
@@ -54,18 +54,18 @@ Dataclasses with `to_dict`/`from_dict` and (where they affect decisions) a `cont
 
 ## Tests
 
-- Round-trip serde for all 16 types (parametrized), including immutable MissionBrief versions.
+- Parametrized round-trip serde for all 16 types, including immutable MissionBrief versions.
 - Canonical hash stability incl. subprocess run; dict key ordering invariance.
 - `tuple_hash` sensitivity per component.
 - Enum rejection of bad values.
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §1 all items `[x]`. Progress summary row 1.
 
 ## Definition of done
 
-All types importable from `facktry.types`, tests green, checklist updated.
+All types are importable from `facktry.types` and their tests pass.
 
 ## Handoff to phase 02
 

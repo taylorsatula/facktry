@@ -9,7 +9,7 @@
 
 ## Goal
 
-Weight updates as governed, carded, callback-guarded runs. After this phase, `train_smoke` and `train_scale` in the facade do real work end-to-end: admission hash → smoke → decision → scale → checkpoints, with ancestors preserved.
+Implement governed, carded, callback-guarded weight updates. `train_smoke` and `train_scale` then run end-to-end from admission hash through smoke, decision, scale, and checkpoints without changing ancestors.
 
 ## In scope (`facktry/train/`)
 
@@ -35,9 +35,9 @@ Registry: `register_backend(method, backend)`. Core ships:
 Append-only `metrics.jsonl` via store (`step, loss, probe scores, lr, grad norm, tokens, wall`) — same schema the watch CLI tails.
 
 ### Run semantics
-- Every attempt = new run dir; init from declared parent tuple only (parent hash verified before start); **ancestor/base artifacts never overwritten** (test hashes before/after).
+- Every attempt uses a new run directory and declared, hash-verified parent tuple; **ancestor/base artifacts are never overwritten**.
 - Corrective training is a new run from base/ancestor — the API has no "continue from specialist" path unless the objective records a waiver.
-- `train_scale` via facade requires `govern.smoke_then_scale` (already implemented phase 04 — now exercised for real): linked completed smoke + allowing Decision + compatible code_hash + compatible admission hash + memory envelope.
+- `train_scale` via the facade requires `govern.smoke_then_scale`: linked completed smoke, allowing Decision, compatible `code_hash`, compatible admission hash, and memory envelope.
 - Every attempt writes a complete `TrainCard` (ADR §5.10 — incl. repeated-example exposure computed from admitted rows' dependence keys, teacher/reference ids, best-checkpoint ref under gate callbacks).
 
 ## Out of scope
@@ -62,13 +62,13 @@ Append-only `metrics.jsonl` via store (`step, loss, probe scores, lr, grad norm,
 - TrainCard completeness incl. repeat-exposure math on fixture rows.
 - Hparam bounds refusal.
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §10: plugin, SFT, target-only, parent rules, hparams, metrics, all four callbacks, TrainCard `[x]`; preference rows stay `[ ]`. Test rows: collapse `[x]`. §18 smoke/scale rows confirmed. Progress summary row 10.
 
 ## Definition of done
 
-`agent_api.train_smoke`/`train_scale` work end-to-end with FakeBackend in CI and accept `LocalTorchSFT` registration without API change; tests green; checklist updated.
+`agent_api.train_smoke`/`train_scale` work end-to-end with `FakeBackend` in CI and accept `LocalTorchSFT` registration without API changes; tests pass.
 
 ## Handoff to phase 12
 

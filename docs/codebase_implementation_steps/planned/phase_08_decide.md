@@ -9,7 +9,7 @@
 
 ## Goal
 
-Pure aggregation from evidence to `Decision`, plus the dossier artifact and defect memory updates. Given the same inputs, decide returns the same action — no model calls, no randomness.
+Aggregate evidence into a deterministic `Decision`, dossier artifact, and defect updates. `decide` makes no model calls and uses no randomness.
 
 ## In scope (`facktry/decide.py`)
 
@@ -72,14 +72,14 @@ Each mapping emits a machine-readable hint (which gate, which evidence hash).
 - Dossier artifact: hash-registered, contains gate table + intervention + budget sections.
 - `human_promote=true` path yields `ask_human`, not bare `promote`.
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §13 all `[x]` + its two test rows; §18 decide rows `[x]`. Progress summary row 13 (note: done ahead of rows 8–12 per ADR build order).
 
 ## Definition of done
 
-Decide is a tested pure aggregator honoring every §5.7 rule; dossiers and defects persist; checklist updated.
+`decide` is a tested pure aggregator honoring every §5.7 rule; dossiers and defects persist.
 
 ## Handoff to phase 09
 
-Phase 09 (agent_api) wraps decide + everything before it in the governed facade. Decide's signature should already accept exactly what the facade can gather from store queries — adjust now, not later.
+Phase 09 wraps `decide` and earlier modules in the governed facade. Its signature should accept exactly what the facade gathers from store queries.

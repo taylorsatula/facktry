@@ -9,7 +9,7 @@
 
 ## Goal
 
-Deterministic oracles that turn model outputs and trajectories into structured `Finding`s. These are the machine-owned half of hard gates — the part LLM judges may never solely own.
+Implement deterministic oracles that turn model outputs and trajectories into structured `Finding`s. LLM judges may not solely own these hard-gate checks.
 
 ## In scope (`facktry/verify/`)
 
@@ -42,7 +42,7 @@ Deterministic oracles that turn model outputs and trajectories into structured `
 ## Fail-closed requirements
 
 - Deterministic: same inputs → same findings, always. No randomness, no time dependence, no network.
-- An oracle that cannot run (missing context it requires) returns a *configuration* finding, not silence.
+- An oracle that cannot run returns a *configuration* finding, never silence.
 
 ## Tests
 
@@ -51,13 +51,13 @@ Deterministic oracles that turn model outputs and trajectories into structured `
 - **unsupported_action**: call outside authorized schema → finding. (**§18 row**)
 - `findings_to_gate_results` maps severities from config.
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §6 all `[x]` incl. its two test rows; §18 oracle row `[x]`. Progress summary row 6.
 
 ## Definition of done
 
-All eight oracle capabilities exist with tests; severities wire to gates; checklist updated.
+All eight oracle capabilities exist, are tested, and wire severities to gates.
 
 ## Handoff to phase 07
 

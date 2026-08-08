@@ -9,7 +9,7 @@
 
 ## Goal
 
-An installable, importable `facktry` package with pytest scaffolding and workspace discovery, so every later phase lands code in a real package instead of a pile of scripts.
+Create the installable `facktry` package, pytest scaffold, and shared workspace discovery.
 
 ## In scope
 
@@ -29,7 +29,7 @@ An installable, importable `facktry` package with pytest scaffolding and workspa
 
 ## Fail-closed requirements
 
-- `resolve_workspace()` must be deterministic: agent and human processes resolve to the same path given the same cwd/env. No flag gymnastics.
+- `resolve_workspace()` must return the same path for agent and human processes given the same cwd/env; no extra flags.
 - Workspace creation must be idempotent and safe to call concurrently (create-if-missing, no clobbering existing files).
 
 ## Tests
@@ -38,14 +38,14 @@ An installable, importable `facktry` package with pytest scaffolding and workspa
 - Workspace resolution: `FACKTRY_HOME` wins; parent-walk finds an ancestor `.facktry/`; fallback creates `.facktry/` in cwd; repeated calls don't error.
 - Static guard test: no source file under `facktry/` imports from `reference_repos/` (scan with pathlib — cheap, permanent regression guard for ADR §13.5).
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Mark every item in checklist §0 `[x]` (including the reference-repository independence guard).
 - Progress summary row 0 → `[x]` with UTC date.
 
 ## Definition of done
 
-`pip install -e .` succeeds, `facktry` console script runs and prints the placeholder, `pytest` passes, and the checklist is updated in the same change set.
+`pip install -e .` succeeds; the placeholder console script runs; and `pytest` passes.
 
 ## Handoff to phase 01
 

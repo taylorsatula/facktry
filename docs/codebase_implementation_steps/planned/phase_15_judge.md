@@ -9,7 +9,7 @@
 
 ## Goal
 
-Optional LLM assessment that earns soft-gate credit only through calibration — and can never own a hard gate.
+Implement optional LLM assessment that earns soft-gate credit only after calibration and can never own a hard gate.
 
 ## In scope (`facktry/judge/`)
 
@@ -38,7 +38,7 @@ Optional LLM assessment that earns soft-gate credit only through calibration —
 
 ## Fail-closed requirements
 
-- Uncalibrated judge = diagnostic-only output, automatically.
+- Uncalibrated judge output is diagnostic-only.
 - Calibration fixtures hash-verified at load.
 
 ## Tests
@@ -50,13 +50,13 @@ Optional LLM assessment that earns soft-gate credit only through calibration —
 - Redaction: PII sentinel stripped before fake-remote backend receives payload; policy denial blocks.
 - Overseer flags canned-opening fixture.
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §9 all `[x]`. Progress summary row 9.
 
 ## Definition of done
 
-Judge outputs flow into scorecards/decisions with calibration-gated severity; tests green; checklist updated.
+Judge outputs flow into scorecards and decisions with calibration-gated severity; tests pass.
 
 ## Handoff to phase 16
 

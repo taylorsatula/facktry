@@ -9,7 +9,7 @@
 
 ## Goal
 
-The human overseer's window. Bare `facktry` shows live truth with auto-focus and zero mandatory flags; mutation from the CLI is limited to explicit inbox/promote-ack subcommands.
+Provide the human overseer's read-only live view. Bare `facktry` auto-focuses without required flags; CLI mutation is limited to explicit inbox/promote-ack subcommands.
 
 ## In scope (`facktry/cli/`)
 
@@ -42,7 +42,7 @@ Header (objective id · MissionBrief id/version/hash · intent · autonomy · bu
 
 ## Fail-closed requirements
 
-- Read-only live path: a test runs the snapshot render against a workspace and asserts store mtimes/manifests unchanged.
+- Live snapshots are read-only; tests assert store mtimes and manifests are unchanged.
 - Empty workspace → helpful empty state naming the next step ("no active objective; agent must elicit and save a MissionBrief"), not a traceback.
 
 ## Tests
@@ -54,13 +54,13 @@ Header (objective id · MissionBrief id/version/hash · intent · autonomy · bu
 - Missing metrics file / missing GPU → degraded panes, exit code 0.
 - `facktry inbox respond` round-trip: valid response resolves item; invalid refused with schema error.
 
-## Checklist updates (same change set)
+## Checklist updates
 
 - Checklist §15 all `[x]` + test rows; §18 CLI row `[x]`. Progress summary row 15.
 
 ## Definition of done
 
-A human typing `facktry` during fixture activity sees objective, phase, active run, gates, defects, inbox pressure with no flags; tests green; checklist updated.
+Typing `facktry` during fixture activity shows the objective, phase, active run, gates, defects, and inbox pressure without flags; tests pass.
 
 ## Handoff to phase 11
 

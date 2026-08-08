@@ -6,17 +6,17 @@
 | **Operator runtime** | `PI_FOUNDATION.md` — Pi session image / `facktry run` (parallel track; not a substitute for harness modules). |
 | **Maintainer** | Every implementation agent **must** update this file in the same change set as code. |
 | **Rule** | After context compaction, read `ADR.md` + **this file** before writing code. Do not trust chat memory for progress. |
-| **Status values** | `[ ]` not started · `[ ]` in progress / partial · `[ ]` done and covered by tests where ADR §13.3 requires · `[ ]` waived (write reason) |
+| **Status values** | `[ ]` not started · `[~]` in progress / partial · `[x]` done and covered by required tests · `[-]` waived with written reason |
 
 ---
 
 ## How to use this file
 
 1. Open `ADR.md` for the contract of the item you are building.  
-2. Find the matching section below; mark `[ ]` when you start.  
-3. Mark `[ ]` only when behavior matches ADR **and** required tests exist/pass.  
-4. Add a one-line note under the item if something is subtle (hash scheme, path layout).  
-5. Never delete checklist items to hide work; waive with `[ ]` + reason instead.  
+2. Find the matching section below; mark `[~]` when you start.
+3. Mark `[x]` only when behavior matches ADR **and** required tests exist/pass.
+4. Add a one-line note under the item if something is subtle (hash scheme, path layout).
+5. Never delete checklist items to hide work; waive with `[-]` + reason instead.
 6. Keep the **Progress summary** table at the bottom accurate on every edit.
 7. Work phase-by-phase using the per-phase docs in `codebase_implementation_steps/` (index: `codebase_implementation_steps/README.md`). Mark the phase doc status and the matching checklist sections in the same change set as code.
 
@@ -440,7 +440,7 @@ Recipes live in `docs/recipes/<recipe-id>/RECIPE.md`; `_template/RECIPE.md` is a
 - [ ] Load/list/show immutable recipe versions with instruction hashes
 - [ ] Append structured notes with run/evidence refs; reject edits/deletes to prior notes
 - [ ] Compose compatible recipes into an immutable `RecipeStack` with ordered refs, overrides, allocation, and validation plan
-- [ ] Recipe stack cannot bypass govern/admit/smoke/sealed measure/decide or weaken Objective hard gates
+- [ ] `RecipeStack` cannot bypass govern/admit/smoke/sealed measure/decide or weaken Objective hard gates
 - [ ] Recipe retrieval is encouraged during planning, training-method choice, correction, and human-inbox reasoning
 - [ ] Recipe notes inform planning but never satisfy measured gates alone
 - [ ] Every governed use appends measured or failure evidence back to the relevant recipe notes
