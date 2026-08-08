@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | [~] |
+| **Status** | [x] |
 | **Depends on** | nothing |
 | **Checklist sections** | §0 |
 | **ADR refs** | §13.4 (code quality), §7.1 (workspace discovery) |

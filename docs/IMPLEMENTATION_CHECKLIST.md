@@ -24,16 +24,16 @@
 
 ## 0. Repository skeleton
 
-- [~] Package root installable (`pyproject.toml`, package name `facktry`)
-- [~] Console entrypoint `facktry` → CLI main
-- [~] Package importable: `import facktry`
-- [~] `facktry/__init__.py` exports version
-- [~] Workspace default `.facktry/` + `FACKTRY_HOME` discovery helper
-- [~] `runs/` (or workspace-relative runs) gitignored
-- [~] `.facktry/` gitignored as appropriate
-- [~] `tests/` laid out and pytest discovers them
-- [~] README pointing at `ADR.md`, this checklist, `docs/skills/`, and `docs/recipes/`
-- [~] No runtime dependency on reference repositories
+- [x] Package root installable (`pyproject.toml`, package name `facktry`)
+- [x] Console entrypoint `facktry` → CLI main
+- [x] Package importable: `import facktry`
+- [x] `facktry/__init__.py` exports version
+- [x] Workspace default `.facktry/` + `FACKTRY_HOME` discovery helper
+- [x] `runs/` (or workspace-relative runs) gitignored
+- [x] `.facktry/` gitignored as appropriate
+- [x] `tests/` laid out and pytest discovers them
+- [x] README pointing at `ADR.md`, this checklist, `docs/skills/`, and `docs/recipes/`
+- [x] No runtime dependency on reference repositories
 
 **Notes:**
 

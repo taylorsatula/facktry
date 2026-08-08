@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "facktry"
+version = "0.1.0a0"
+description = "Autonomous, governed model-development harness"
+readme = "README.md"
+license = {text = "SEE LICENSE FILE"}
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+facktry = "facktry.cli.main:main"
+
+[project.optional-dependencies]
+train = [
+    # torch etc., unpinned placeholders — imported lazily inside the train backend
+    "torch",
+]
+cli = [
+    "rich",
+]
+dev = [
+    "pytest",
+]
+
+[tool.setuptools.packages.find]
+include = ["facktry*"]
