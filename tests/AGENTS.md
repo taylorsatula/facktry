@@ -65,3 +65,15 @@ When an input has a pre-set `brief_hash = "a"*64` and save computes the real has
 
 ### 2025-08-09 — Initial creation from Phases 2 & 3 lessons
 See sections above for captured insights.
+
+### 2026-08-08 — Phase 01 rewrite lessons (dataclass → self-validating models)
+
+**Wire format and internal representation are two languages.** When a system has both, the mapping between them must be bidirectional and explicit. If serialization produces keys that don't match what deserialization expects, round-trips silently break — not at the boundary where the mismatch originates, but later, in unrelated code that trusts the output. Verify both directions independently.
+
+**Derived fields must be excluded from their own computation.** A hash that includes itself is circular. Any field computed from other content must be excluded from that computation — declared explicitly per-type, not discovered by convention. Self-reference in content-addressed systems produces either infinite loops or silent corruption depending on implementation order.
+
+**Test data must be rich enough to exercise the behavior under test.** A single-item list reversed is identical to the original. A test asserting order-sensitivity with one item passes vacuously. Fixtures must have sufficient cardinality for the assertions they make — otherwise the test proves nothing while appearing to prove everything.
+
+**Framework internals should not leak across domain boundaries.** When a validation framework raises its own error type, wrap it at the boundary in the domain's exception type. Callers should never need to know which framework validates the data — only that validation failed and why. This preserves the ability to swap implementations without cascading changes through every caller.
+
+**Boilerplate elimination reveals hidden invariants.** Replacing hundreds of lines of hand-written serialization with declarative validation exposes invariants that were scattered across methods as configuration on the type itself. The reduction in code is a reduction in places for bugs to hide — and a reduction in places for invariants to drift.
