@@ -110,11 +110,14 @@ Serialize/deserialize stably; hashes canonical.
 - [ ] Freeze persists bytes + content hash
 - [ ] Refuse mutate-after-freeze
 - [ ] Supersede → new id, link to old
+- [ ] **Follow-up tune** → new objective that inherits parent gates + adds targeted gates; sets `follow_up_from` field; sets ancestor baseline to parent's pinned tuple; reuses parent training data + adds targeted data; minimal retraining scope; cannot weaken parent hard gates
 - [ ] List open/frozen objectives (for CLI auto-focus)
 - [ ] Recipe policy lint: applicability, allowed/forbidden ids, conflicts, stack limits, budget, and no weakening of hard gates
 - [ ] Compose and hash a compatible `RecipeStack` after MissionBrief exists
 
 **Notes:**
+
+Follow-up tune is a lightweight refinement mechanism for post-deployment issues. It creates a new objective that inherits all parent gates and adds targeted gates for specific issues. The ancestor baseline is set to the parent's pinned tuple (preserving previous capabilities), and training data includes both parent's data and new targeted data. Multiple follow-ups create a lineage chain: base → obj-1 → obj-2 → obj-3.
 
 
 
@@ -348,6 +351,7 @@ Serialize/deserialize stably; hashes canonical.
 
 - [ ] `save_mission_brief` / `show_mission_brief` / `list_mission_briefs` (immutable version + hash; save once at end of elicitation)
 - [ ] `freeze_objective` / `show_objective` / `supersede_objective` (freeze requires saved MissionBrief)
+- [ ] `follow_up_tune` (lightweight refinement: inherits parent gates + adds targeted gates; reuses parent data + adds targeted data; sets ancestor to parent's pinned tuple; minimal retraining scope; cannot weaken parent hard gates)
 - [ ] `preflight`
 - [ ] `pin_suites`
 - [ ] `admit` / `generate_and_admit`
@@ -366,6 +370,8 @@ Serialize/deserialize stably; hashes canonical.
 - [ ] Every mutator calls govern
 
 **Notes:**
+
+Follow-up tune is exposed as a first-class operation in the agent API. It wraps the objective module's follow_up_tune function with govern checks (policy, budget, suite pin). The operation returns a structured ApiResult with the new frozen objective id and lineage information.
 
 
 

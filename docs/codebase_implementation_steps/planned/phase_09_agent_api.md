@@ -21,6 +21,7 @@ Provide the LLM agent's single governed mutation surface. Every operation return
 |---|---|
 | `save_mission_brief` / `show_mission_brief` / `list_mission_briefs` | phase 03 functions; immutable version/hash at end of elicitation; recipe considerations are planning provenance. |
 | `freeze_objective` / `show_objective` / `supersede_objective` | phase 03 functions; freeze requires a matching MissionBrief and valid recipe policy/stack constraints. |
+| `follow_up_tune` | phase 03 function; lightweight refinement: inherits parent gates + adds targeted gates; reuses parent data + adds targeted data; sets ancestor to parent's pinned tuple; minimal retraining scope. Cannot weaken parent hard gates. Govern checks: policy, budget, suite pin. |
 | `preflight` | `govern.preflight`. |
 | `list_recipes` / `show_recipe` | Read-only curated recipe catalog and append-only notes. |
 | `recommend_recipes` | Read-only ranking from target effects, Objective constraints, defects, notes, and prior outcomes; recommendations are proposals, not gates. |
@@ -71,6 +72,12 @@ Provide the LLM agent's single governed mutation surface. Every operation return
 - `yield_release` refused without human-promote satisfaction; succeeds after valid ingest; pins tuple.
 - Secrets: configured secret name used by an op → value never in any artifact/manifest.
 - `train_smoke` with no backend → typed denial (not success); `train_scale` without smoke → `SmokeGateUnsatisfied` (facade-level; end-to-end in phase 11).
+- **`follow_up_tune` inherits parent gates and adds targeted gates** — new objective has all parent gates + new gates; `follow_up_from` field set to parent id.
+- **`follow_up_tune` reuses parent training data + adds targeted data** — admitted data includes parent's rows + new targeted rows; reject histogram shows both sources.
+- **`follow_up_tune` sets ancestor baseline to parent's pinned tuple** — `baselines.ancestor` points to parent's pinned ReleaseTuple; train uses ancestor as parent, not base.
+- **`follow_up_tune` preserves lineage chain** — multiple follow-ups create chain: base → obj-1 → obj-2 → obj-3; each has `follow_up_from` pointing to previous.
+- **`follow_up_tune` cannot weaken parent hard gates** — attempting to remove or relax parent hard gates → lint failure; new gates can only add constraints, not remove them.
+- **`follow_up_tune` govern checks** — policy check, budget charge, suite pin required; all must pass before follow-up objective is frozen.
 
 ## Checklist updates
 

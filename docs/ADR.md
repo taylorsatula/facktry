@@ -142,7 +142,7 @@ The MissionBrief is provenance and intent evidence, not a measured `GateResult`;
 
 ### 5.1 `Objective`
 
-Frozen mission contract. Immutable after freeze except via **supersede** (new objective id that references the old one).
+Frozen mission contract. Immutable after freeze except via **supersede** (new objective id that references the old one) or **follow-up tune** (lightweight refinement that inherits parent gates and adds targeted gates).
 
 Required fields:
 
@@ -162,6 +162,7 @@ Required fields:
 | `policy` | Autonomy hooks: what auto-runs vs `ask_human`; `human_promote` default **true** for model deliverables |
 | `interface` | Pinned prompt policy, tool schema, decode profile ids that candidate tuples must match |
 | `recipe_policy` | Optional target effects, allowed/forbidden recipe ids, stack-size and compatibility constraints; exact stacks are recorded per run |
+| `follow_up_from` | Optional parent objective id when this is a follow-up tune; inherits parent gates + adds new gates |
 
 **Freeze lint (must refuse freeze on violation):**
 
@@ -410,14 +411,15 @@ Requirements:
 
 ### 7.2 `objective`
 
-**Job:** load, lint, freeze, supersede, show objectives.
+**Job:** load, lint, freeze, supersede, follow-up tune, show objectives.
 
 Requirements:
 
 - Freeze persists objective bytes + hash; subsequent loads verify hash.
 - Lint rules in §5.0–§5.1 are mandatory, including the saved MissionBrief and individual hard-gate approvals.
 - Supersede creates a new id; does not mutate the old record.
-- Expose “open objectives” for CLI auto-focus.
+- **Follow-up tune** creates a new objective that inherits parent gates and adds targeted gates for specific issues; reuses parent's training data + adds targeted data; sets ancestor baseline to parent objective's pinned tuple; minimal retraining scope.
+- Expose "open objectives" for CLI auto-focus.
 - Validate any selected `RecipeStack` against `recipe_policy`, recipe hashes, applicability, conflicts, and budget before freeze or execution.
 
 ### 7.3 `admit`
@@ -640,6 +642,7 @@ Required operations (names may vary, but capabilities may not):
 |---|---|
 | `save_mission_brief` / `show_mission_brief` / `list_mission_briefs` | Save one complete immutable brief version at the end of elicitation; inspect intent provenance |
 | `freeze_objective` / `show_objective` / `supersede_objective` | Objective lifecycle; freeze requires the saved brief |
+| `follow_up_tune` | Lightweight refinement: inherits parent gates + adds targeted gates; reuses parent data + adds targeted data; sets ancestor to parent's pinned tuple; minimal retraining scope |
 | `preflight` | `govern.preflight` |
 | `pin_suites` | Freeze sealed/dev hashes on objective |
 | `admit` / `generate_and_admit` | Data path |
@@ -785,6 +788,14 @@ After an objective is frozen, each autonomous iteration follows this order:
     - `hold` / `abort` → dossier; stop mutation.  
     - `promote` → human final when `human_promote` (default true); `yield_release` pins tuple; optional canary.  
 11. **Yield** — pinned tuple + dossier + non-sensitive lesson export only. Include the exact `RecipeStack` hash when a recipe was applied.
+12. **Post-deployment refinement (optional)** — if the promoted model exhibits unexpected behavior not covered by original gates:
+    - Human identifies the issue via monitoring or testing.
+    - Agent creates a **follow-up objective** via `follow_up_tune(parent_objective_id, new_gates, targeted_data, budget)`.
+    - Follow-up objective inherits parent gates + adds targeted gates for the specific issue.
+    - Follow-up objective sets ancestor baseline to parent's pinned tuple (preserves previous capabilities).
+    - Follow-up objective reuses parent's training data + adds targeted data to address the issue.
+    - Follow-up objective runs smoke → scale → measure → decide → promote cycle.
+    - Lineage chain: base → obj-1 → obj-2 (follow-up) → obj-3 (follow-up) → ...
 
 **Data-only objectives** still require a saved MissionBrief and frozen Objective, then skip train/select/serve but still pin suites, admit, measure, decide.
 
@@ -923,11 +934,11 @@ Do not land a parallel “simple mode” that bypasses admit, smoke, or measure.
 Build in dependency order so each slice is **fully correct** for the contracts it claims:
 
 1. `store`, types, hashing, workspace discovery  
-2. `elicit`/MissionBrief save + `objective` freeze/lint + `govern.preflight` + `govern.policy/budget` skeletons wired for real denial  
+2. `elicit`/MissionBrief save + `objective` freeze/lint/supersede/**follow-up tune** + `govern.preflight` + `govern.policy/budget` skeletons wired for real denial  
 3. `admit` + `AdmissionReport` + attribution/leakage tests  
 4. `verify` core oracles + `suite` registry/runner/`compare` + sealed custody boundary  
 5. `decide` aggregation + dossier + defects  
-6. `agent_api` complete surface on top of the above  
+6. `agent_api` complete surface on top of the above (including `follow_up_tune` operation)  
 7. `watch` CLI auto-focus + status + show + ls (wired to real store)  
 8. `train` SFT + callbacks + `TrainCard` + `select` + smoke/scale govern  
 9. preference path obeying §7.8 contract  
@@ -935,7 +946,9 @@ Build in dependency order so each slice is **fully correct** for the contracts i
 11. `serve` + canary + rollback  
 12. domain pack registration when a real objective exists  
 
-“Order” means dependency layering. It does not mean shipping lasting public APIs that omit govern checks.
+**Note:** Follow-up tune is implemented as an extension of Phase 3 (objective module) and Phase 9 (agent_api), not as a separate phase. It leverages existing supersede mechanics + ancestor preservation + targeted data generation.
+
+"Order" means dependency layering. It does not mean shipping lasting public APIs that omit govern checks.
 
 ### 13.3 Testing (mandatory categories)
 
@@ -962,6 +975,11 @@ Automated tests must cover:
 - freeze and every experiment path refuse a missing, incomplete, or mismatched MissionBrief  
 - individual hard-gate approvals are required before freeze  
 - MissionBrief/Objective/run lineage is visible through `show` and shared CLI/agent queries  
+- **follow_up_tune inherits parent gates and adds targeted gates**  
+- **follow_up_tune reuses parent training data + adds targeted data**  
+- **follow_up_tune sets ancestor baseline to parent's pinned tuple**  
+- **follow_up_tune preserves lineage chain (base → obj-1 → obj-2)**  
+- **follow_up_tune cannot weaken parent hard gates**  
 
 ### 13.4 Code quality
 

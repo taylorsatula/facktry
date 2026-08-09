@@ -24,6 +24,7 @@ Save a complete, versioned `MissionBrief`, then lint and freeze a hashed, immuta
 - `load_objective(store, objective_id) -> Objective` — reads bytes, **verifies hash before deserialize**, `StoreError` on mismatch.
 - `show_objective(store, objective_id) -> dict` — human/agent-readable view.
 - `supersede_objective(store, old_id, new_obj) -> FrozenObjective` — lint + freeze the new objective with `supersedes=old_id`; the old record's bytes are **never mutated** (mark it `superseded` via a separate index flag, not by editing its bytes).
+- `follow_up_tune(store, parent_objective_id, new_gates, targeted_data, budget) -> FrozenObjective` — lightweight refinement: creates new objective that inherits parent gates + adds targeted gates; sets `follow_up_from=parent_objective_id`; sets ancestor baseline to parent's pinned tuple; reuses parent's training data + adds targeted data; minimal retraining scope. Cannot weaken parent hard gates.
 - `list_objectives(store, status=None)` — open/frozen objectives for CLI auto-focus (newest first).
 
 ### Lint rules (ADR §5.0–§5.1, all mandatory)
@@ -59,6 +60,11 @@ Save a complete, versioned `MissionBrief`, then lint and freeze a hashed, immuta
 - Mutate-after-freeze attempt refused.
 - Supersede creates new id, links old, old bytes unchanged (hash equality before/after).
 - `list_objectives` ordering for auto-focus.
+- **Follow-up tune inherits parent gates and adds targeted gates** — new objective has all parent gates + new gates; `follow_up_from` field set to parent id.
+- **Follow-up tune reuses parent training data + adds targeted data** — admitted data includes parent's rows + new targeted rows; reject histogram shows both sources.
+- **Follow-up tune sets ancestor baseline to parent's pinned tuple** — `baselines.ancestor` points to parent's pinned ReleaseTuple; train uses ancestor as parent, not base.
+- **Follow-up tune preserves lineage chain** — multiple follow-ups create chain: base → obj-1 → obj-2 → obj-3; each has `follow_up_from` pointing to previous.
+- **Follow-up tune cannot weaken parent hard gates** — attempting to remove or relax parent hard gates → lint failure; new gates can only add constraints, not remove them.
 
 ## Checklist updates
 
