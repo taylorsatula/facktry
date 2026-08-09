@@ -41,7 +41,7 @@ Phase docs live in three directories reflecting their state:
 | Phase | Doc | Deliverable | Status |
 |---|---|---|---|
 | 00 | [complete/phase_00_skeleton.md](complete/phase_00_skeleton.md) | Installable package, workspace discovery, gitignore, pytest scaffold | [x] |
-| 01 | [planned/phase_01_types_hashing.md](planned/phase_01_types_hashing.md) | All core types, enums, canonical hashing | [ ] |
+| 01 | [complete/phase_01_types_hashing.md](complete/phase_01_types_hashing.md) | All core types, enums, canonical hashing | [x] |
 | 02 | [planned/phase_02_store.md](planned/phase_02_store.md) | Durable store: run dirs, artifacts, sqlite index, queries, metrics | [ ] |
 | 03 | [planned/phase_03_objective.md](planned/phase_03_objective.md) | Objective lint/freeze/supersede | [ ] |
 | 04 | [planned/phase_04_govern_core.md](planned/phase_04_govern_core.md) | Preflight, budget ledger, policy, compat_check | [ ] |

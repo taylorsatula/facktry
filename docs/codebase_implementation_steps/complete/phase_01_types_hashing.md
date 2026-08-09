@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | [ ] |
+| **Status** | [x] |
 | **Depends on** | Phase 00 |
 | **Checklist sections** | §1 |
 | **ADR refs** | §5.0 `MissionBrief`, §5 (all core objects), §13.4 (deterministic hashing) |

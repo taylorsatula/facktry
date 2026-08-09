@@ -51,23 +51,23 @@ trusting metadata tests. Green implementation to follow.
 
 Serialize/deserialize stably; hashes canonical.
 
-- [ ] `MissionBrief` + immutable versions / content hashes / supersede lineage (including recipe considerations and human tradeoffs)
-- [ ] `Objective` + freeze immutability / supersede; every objective references a saved MissionBrief
-- [ ] `ReleaseTuple` + `tuple_hash` over components
-- [ ] `Run` + status enum
-- [ ] `Artifact`
-- [ ] `Gate` / `GateResult` (severities, channels raw|guarded|n/a)
-- [ ] `Scorecard` (raw + guarded channels)
-- [ ] `Decision` + actions enum
-- [ ] `Recipe` + versioned instruction hash / append-only note hashes
-- [ ] `RecipeStack` + immutable composition hash
-- [ ] `Defect`
-- [ ] `Policy` / `BudgetLedger`
-- [ ] `TrainCard`
-- [ ] `MixtureSpec` / `TargetShape`
-- [ ] `AdmissionReport`
-- [ ] `HumanInboxItem`
-- [ ] Canonical JSON / hashing utilities used by all of the above
+- [x] `MissionBrief` + immutable versions / content hashes / supersede lineage (including recipe considerations and human tradeoffs)
+- [x] `Objective` + freeze immutability / supersede; every objective references a saved MissionBrief
+- [x] `ReleaseTuple` + `tuple_hash` over components
+- [x] `Run` + status enum
+- [x] `Artifact`
+- [x] `Gate` / `GateResult` (severities, channels raw|guarded|n/a)
+- [x] `Scorecard` (raw + guarded channels)
+- [x] `Decision` + actions enum
+- [x] `Recipe` + versioned instruction hash / append-only note hashes
+- [x] `RecipeStack` + immutable composition hash
+- [x] `Defect`
+- [x] `Policy` / `BudgetLedger`
+- [x] `TrainCard`
+- [x] `MixtureSpec` / `TargetShape`
+- [x] `AdmissionReport`
+- [x] `HumanInboxItem`
+- [x] Canonical JSON / hashing utilities used by all of the above
 
 **Notes:**
 
