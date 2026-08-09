@@ -41,7 +41,7 @@ def test_guard_drift_requires_declared_raw_guarded_comparison():
 
     left = types.ReleaseTuple.from_dict(payloads()["ReleaseTuple"])
     changed = copy.deepcopy(payloads()["ReleaseTuple"])
-    changed["guards"] = {"id": "other", "hash": "b" * 64}
+    changed["guards"] = {"ref": "other", "hash": "b" * 64}
     right = types.ReleaseTuple.from_dict(changed)
     assert not compat_check(left, right).passed
     assert compat_check(left, right, allowed_diffs=frozenset({"guards"})).passed

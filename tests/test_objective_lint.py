@@ -39,9 +39,9 @@ def assert_rule(obj, token):
     ({"suites": {"dev": {"ref": "suite-dev", "hash": HASH},
                   "seal": {"ref": "suite-seal", "hash": ""}}}, "sealed"),
     ({"budget": {"wall_time": -1, "gpu_hours": 1, "judge_tokens": 1,
-                  "smoke": 1, "scale": 1, "on_exhaustion": "hold"}}, "budget"),
+                  "smoke_runs": 1, "scale_runs": 1, "on_exhaustion": "hold"}}, "budget"),
     ({"budget": {"wall_time": 1, "gpu_hours": 1, "judge_tokens": 1,
-                  "smoke": 1, "scale": 1}}, "exhaust"),
+                  "smoke_runs": 1, "scale_runs": 1}}, "exhaust"),
     ({"dependence_keys": []}, "dependence"),
 ])
 def test_each_pure_lint_rule_returns_named_violation(changes, token):

@@ -217,6 +217,7 @@ def freeze_objective(store: Any, obj: Objective) -> Objective:
     violations = lint_objective(obj, store=store)
 
     # --- Brief-level checks that need the store -----------------------------------
+    brief: MissionBrief | None = None
     try:
         brief = store.get_mission_brief(obj.mission_brief.id, obj.mission_brief.version)
     except (StoreError, FileNotFoundError):
@@ -246,12 +247,15 @@ def freeze_objective(store: Any, obj: Objective) -> Objective:
     if violations:
         raise ObjectiveLintError(violations)
 
-    # Enforce rule 9 default at freeze time: no_self_distill defaults true
-    constraints = dict(obj.constraints) if isinstance(obj.constraints, dict) else {}
-    constraints.setdefault("no_self_distill", True)
-
-    # Build canonical bytes
+    # Use the actual brief hash from the saved brief, not the input placeholder.
+    # This ensures govern's mission_brief_required can verify the match.
     data = obj.to_dict()
+    if brief is not None:
+        data["mission_brief"]["brief_hash"] = brief.brief_hash
+
+    # Enforce rule 9 default at freeze time: no_self_distill defaults true
+    constraints = dict(data["constraints"]) if data["constraints"] else {}
+    constraints.setdefault("no_self_distill", True)
     data["constraints"] = constraints
     b = canonical_json(data)
     h = hash_bytes(b)

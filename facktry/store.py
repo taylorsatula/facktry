@@ -696,6 +696,50 @@ class Store:
         return ReleaseTuple.from_dict(json.loads(row["tuple_bytes"].decode()))
 
     # ======================================================================
+    # Budget ledger
+    # ======================================================================
+
+    def seed_budget(
+        self,
+        objective_id: str,
+        ledger_bytes: bytes,
+    ) -> None:
+        """Write initial BudgetLedger row for an objective.
+
+        Called lazily on first charge_budget; transactional via context manager.
+        """
+        with self._db as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO budget_ledger (objective_id, ledger_bytes) VALUES (?, ?)",
+                [objective_id, ledger_bytes],
+            )
+
+    def save_budget(
+        self,
+        objective_id: str,
+        ledger_bytes: bytes,
+    ) -> None:
+        """Update (or upsert) the BudgetLedger for an objective."""
+        with self._db as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO budget_ledger (objective_id, ledger_bytes) VALUES (?, ?)",
+                [objective_id, ledger_bytes],
+            )
+
+    def load_budget(self, objective_id: str) -> BudgetLedger:
+        """Load the BudgetLedger for an objective.
+
+        Raises ``StoreError`` if not yet seeded.
+        """
+        row = self._db.execute(
+            "SELECT ledger_bytes FROM budget_ledger WHERE objective_id=?",
+            [objective_id],
+        ).fetchone()
+        if row is None:
+            raise StoreError(f"No budget ledger for objective {objective_id}")
+        return BudgetLedger.from_dict(json.loads(row[0].decode()))
+
+    # ======================================================================
     # Recipes + stacks + notes
     # ======================================================================
 

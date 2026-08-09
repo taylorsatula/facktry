@@ -51,7 +51,7 @@ VALID_OBJECTIVE = {
         "evidence": [],
     }],
     "constraints": {"no_self_distill": True, "pin_suites_on_first_iteration": False},
-    "budget": {"wall_time": 10, "gpu_hours": 2, "judge_tokens": 1000, "smoke": 2, "scale": 1, "on_exhaustion": "hold"},
+    "budget": {"wall_time": 10, "gpu_hours": 2, "judge_tokens": 1000, "smoke_runs": 2, "scale_runs": 1, "on_exhaustion": "hold"},
     "baselines": {"base": {"ref": "base", "tuple_hash": HASH}},
     "suites": {"dev": {"ref": "suite-dev", "hash": HASH}, "seal": {"ref": "suite-seal", "hash": HASH}},
     "dependence_keys": ["scenario_id"],

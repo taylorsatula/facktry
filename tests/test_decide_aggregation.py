@@ -46,7 +46,7 @@ def test_diagnostic_only_failure_does_not_block_by_itself(tmp_path, monkeypatch)
 
 @pytest.mark.parametrize("exhaustion,expected", [("hold", "hold"), ("abort", "abort")])
 def test_budget_exhaustion_uses_objective_behavior(tmp_path, monkeypatch, exhaustion, expected):
-    store = frozen_store(tmp_path, monkeypatch, {"budget": {"wall_time": 0, "gpu_hours": 0, "judge_tokens": 0, "smoke": 0, "scale": 0, "on_exhaustion": exhaustion}})
+    store = frozen_store(tmp_path, monkeypatch, {"budget": {"wall_time": 0, "gpu_hours": 0, "judge_tokens": 0, "smoke_runs": 0, "scale_runs": 0, "on_exhaustion": exhaustion}})
     decision = decide_with(store, [objective_gate()], budget_value=budget(exhausted=True, exhaustion=exhaustion))
     assert decision.action.value == expected
 

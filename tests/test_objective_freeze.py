@@ -23,7 +23,12 @@ def test_valid_brief_then_objective_freezes_and_round_trips(tmp_path, monkeypatc
     objective.save_mission_brief(store, brief)
     frozen = objective.freeze_objective(store, types.Objective.from_dict(objective_payload()))
     loaded = objective.load_objective(store, frozen.id)
-    assert loaded.to_dict() == types.Objective.from_dict(objective_payload()).to_dict()
+    # freeze_objective replaces the input brief_hash with the one from the saved brief.
+    # Verify by loading the saved brief and checking the hash matches.
+    saved_brief = store.get_mission_brief(frozen.mission_brief.id, frozen.mission_brief.version)
+    assert frozen.mission_brief.brief_hash == saved_brief.brief_hash
+    # Round-trip consistency: loaded objective matches frozen one exactly.
+    assert loaded.to_dict() == frozen.to_dict()
     assert objective.list_objectives(store, status="frozen")[0].id == frozen.id
 
 

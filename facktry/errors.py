@@ -17,7 +17,44 @@ class StoreError(Exception):
 
 
 class GovernDenial(Exception):
-    """Govern policy refused a requested action."""
+    """Base class for typed govern refusals.
+
+    Subclasses carry ``reason`` (str) and ``details`` (dict[str, Any])
+    so control flow keys off type alone while diagnostics are structured.
+    """
+
+    def __init__(self, message: str, *, reason: str = "", details: dict | None = None) -> None:
+        super().__init__(message)
+        self.reason = reason
+        self.details = details or {}
+
+
+class MissionBriefRequired(GovernDenial):
+    """No matching saved MissionBrief version/hash for the experiment."""
+
+
+class BudgetExhausted(GovernDenial):
+    """Requested budget charge exceeds remaining dimensions."""
+
+
+class PolicyDenied(GovernDenial):
+    """Policy default-deny rejected the capability."""
+
+
+class PreflightFailed(GovernDenial):
+    """Machine-state or safety precondition not met."""
+
+
+class CompatMismatch(GovernDenial):
+    """Interface hashes drift between tuples beyond allowed diffs."""
+
+
+class SmokeGateUnsatisfied(GovernDenial):
+    """Smoke prerequisites for scale train not met."""
+
+
+class SuiteNotPinned(GovernDenial):
+    """Sealed suite hash not frozen before generate/admit-for-train."""
 
 
 class AdmitRejection(Exception):
