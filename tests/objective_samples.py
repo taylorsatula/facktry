@@ -54,7 +54,7 @@ VALID_OBJECTIVE = {
     "budget": {"wall_time": 10, "gpu_hours": 2, "judge_tokens": 1000, "smoke_runs": 2, "scale_runs": 1, "on_exhaustion": "hold"},
     "baselines": {"base": {"ref": "base", "tuple_hash": HASH}},
     "suites": {"dev": {"ref": "suite-dev", "hash": HASH}, "seal": {"ref": "suite-seal", "hash": HASH}},
-    "dependence_keys": ["scenario_id"],
+    "dependence_keys": ["thread_id", "scenario_id"],
     "mixture": None,
     "policy": {"human_promote": True, "capabilities": {"admit.run": True}},
     "interface": {"prompt_policy": HASH, "tool_schema": HASH, "decode": HASH},

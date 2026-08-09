@@ -429,7 +429,7 @@ Requirements:
 1. **Schema / structure** — required fields present; types valid; for dialogue, role alternation and turn structure valid. Structure checks run at **scenario construction time** and again on materialized rows. Construction failures must not require a GPU generate to discover.
 2. **Dependence-key leakage** — train ∩ eval ∩ seal empty at configured keys. Row-id disjointness alone is insufficient.
 3. **Diversity meters** — unique inputs, unique final turns, template-family entropy/collapse caps, near-duplicate caps. Large N is not a pass.
-4. **Attribution** — every factual claim in targets must be supported by visible input, verified state, or authorized tool result. Hidden briefs in generator context that leak into targets are hard fails.
+4. **Attribution** — entity extraction (spaCy) identifies factual spans in targets and verifies each resolves to content in visible input, verified state, or authorized tool result. Hidden briefs in generator context that leak into targets are hard fails. Substring-only heuristics are insufficient.
 5. **Controlled vocabs** — labels/tags/transforms in declared enums.
 6. **Mixture** — vs `TargetShape` when present.
 7. **Source class** — every row labeled; raw private write attempts fail.

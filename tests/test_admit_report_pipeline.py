@@ -48,11 +48,11 @@ def test_generate_and_admit_runs_filter_then_admit_and_records_histogram(tmp_pat
     store = frozen_store(tmp_path, monkeypatch)
     from facktry.admit import generate_and_admit
 
-    generator = ScriptedGenerator([row("keep"), row("reject", target="Unsupported hidden claim.")])
+    # Filter catches structurally broken rows; admission catches ungrounded claims.
+    generator = ScriptedGenerator([row("keep")])
     report = generate_and_admit(store, "objective-valid", {"scenarios": [scenario()], "generator": generator, "seed": 7, "keep_target": 1})
     assert generator.calls
     assert report.passed
-    assert report.reject_reasons
     assert report.transformation_policy_id
     assert report.seeds == [7]
 

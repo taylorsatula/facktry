@@ -436,6 +436,7 @@ class AdmissionReport(HashableBase):  # noqa: PYI043
 
     model_config = ConfigDict(frozen=True)
 
+    report_hash: str = ""
     input_artifacts: list[str]
     keep_count: int
     reject_count: int
@@ -450,6 +451,9 @@ class AdmissionReport(HashableBase):  # noqa: PYI043
     suite_hash: str
     passed: bool
     gate_results: list[dict[str, Any]]
+    admitted_dep_keys: dict[str, Any] = {}  # dep_key → list of seen values per split
+
+    _HASH_FIELD_NAMES = frozenset({"report_hash"})
 
 
 class HumanInboxItem(HashableBase):

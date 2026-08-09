@@ -57,8 +57,11 @@ class SuiteNotPinned(GovernDenial):
     """Sealed suite hash not frozen before generate/admit-for-train."""
 
 
-class AdmitRejection(Exception):
-    """Admission gate rejected an artifact."""
+class AdmitRejection(GovernDenial):
+    """Admission gate rejected one or more rows."""
+
+    def __init__(self, message: str, *, reason: str = "admit_rejected", details: dict | None = None) -> None:
+        super().__init__(message, reason=reason, details=details)
 
 
 class ObjectiveLintError(Exception):
