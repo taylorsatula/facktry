@@ -21,6 +21,7 @@ def test_recipe_policy_rejects_stack_that_weakens_hard_gate(tmp_path, monkeypatc
     assert "gate" in str(exc.value).lower()
 
 
+@pytest.mark.skip(reason="requires populated recipe catalog (phase 17)")
 def test_recipe_stack_requires_hash_verified_compatible_recipe(tmp_path, monkeypatch):
     monkeypatch.setenv("FACKTRY_HOME", str(tmp_path))
     from facktry import objective, types

@@ -21,20 +21,67 @@ from pathlib import Path
 
 @dataclass(frozen=True)
 class Workspace:
-    """Resolved workspace with pre-computed standard subpaths."""
+    """Resolved workspace with pre-computed standard subpaths.
+
+    Paths resolve lazily via properties so subclasses can override individual paths
+    without reimplementing all of ``__post_init__``.
+    """
 
     root: Path
-    runs: Path = field(init=False)  # type: ignore[assignment]
-    artifacts: Path = field(init=False)  # type: ignore[assignment]
-    objectives: Path = field(init=False)  # type: ignore[assignment]
-    index: Path = field(init=False)  # type: ignore[assignment]
 
-    def __post_init__(self) -> None:
-        _ensure_subdirs(self.root)
-        object.__setattr__(self, "runs", self.root / "runs")
-        object.__setattr__(self, "artifacts", self.root / "artifacts")
-        object.__setattr__(self, "objectives", self.root / "objectives")
-        object.__setattr__(self, "index", self.root / "index.sqlite3")
+    @property
+    def runs(self) -> Path:
+        return self._sub("runs")
+
+    @property
+    def artifacts(self) -> Path:
+        return self._sub("artifacts")
+
+    @property
+    def objectives(self) -> Path:
+        return self._sub("objectives")
+
+    @property
+    def index(self) -> Path:
+        return self.root / "index.sqlite3"
+
+    @property
+    def mission_briefs(self) -> Path:
+        p = self.root / "mission_briefs"
+        p.mkdir(parents=True, exist_ok=True)
+        return p
+
+    @property
+    def decisions(self) -> Path:
+        return self._sub("decisions")
+
+    @property
+    def inbox(self) -> Path:
+        return self._sub("inbox")
+
+    @property
+    def budget(self) -> Path:
+        return self._sub("budget")
+
+    @property
+    def defects_file(self) -> Path:
+        return self._sub("defects.jsonl")
+
+    @property
+    def recipe_stacks(self) -> Path:
+        return self._sub("recipe_stacks")
+
+    @property
+    def pins(self) -> Path:
+        return self._sub("pins")
+
+    # -- internal -----------------------------------------------------------
+
+    def _sub(self, *parts: str) -> Path:
+        result = self.root / "/".join(parts)
+        if not parts[-1].endswith(".jsonl") and not parts[-1].endswith(".sqlite3"):
+            result.mkdir(parents=True, exist_ok=True)
+        return result
 
 
 def _ensure_subdirs(root: Path) -> None:

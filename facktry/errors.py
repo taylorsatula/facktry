@@ -22,3 +22,19 @@ class GovernDenial(Exception):
 
 class AdmitRejection(Exception):
     """Admission gate rejected an artifact."""
+
+
+class ObjectiveLintError(Exception):
+    """Objective freeze refused by lint — carries all named violations."""
+
+    def __init__(self, violations: list[str]) -> None:
+        super().__init__(" | ".join(violations))
+        self.violations = violations
+
+
+class ObjectiveFrozenError(ObjectiveLintError):
+    """Attempt to mutate an already-frozen objective."""
+
+    def __init__(self, objective_id: str) -> None:
+        super().__init__([f"Objective {objective_id} is already frozen"])
+        self.objective_id = objective_id

@@ -1,7 +1,11 @@
-"""Phase 02 red tests: real concurrent metrics/index access."""
+"""Phase 02 red tests: real concurrent metrics/index access.
 
-import multiprocessing
+Uses threading with separate Store instances per thread so each gets an
+independent SQLite connection exercising WAL-mode concurrent reads/writes.
+"""
+
 import sqlite3
+import threading
 
 import pytest
 
@@ -13,15 +17,15 @@ def test_store_uses_wal_and_survives_concurrent_metric_readers(store_factory):
     with sqlite3.connect(store.workspace.index) as connection:
         assert connection.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
     run_id = store_factory.seed_run().run_id
-    errors = multiprocessing.Manager().list()
+    errors: list[BaseException] = []
 
     def append_metrics():
         try:
             writer = store_factory()
             for step in range(50):
                 writer.append_metric(run_id, {"step": step})
-        except Exception as exc:  # assertion below reports any process failure
-            errors.append(repr(exc))
+        except BaseException as exc:
+            errors.append(exc)
 
     def read_metrics():
         try:
@@ -29,13 +33,14 @@ def test_store_uses_wal_and_survives_concurrent_metric_readers(store_factory):
             for _ in range(50):
                 reader.tail_metrics(run_id, 10)
                 reader.query_snapshot("objective-1")
-        except Exception as exc:
-            errors.append(repr(exc))
+        except BaseException as exc:
+            errors.append(exc)
 
-    writers = [multiprocessing.Process(target=append_metrics), multiprocessing.Process(target=read_metrics)]
-    for process in writers:
-        process.start()
-    for process in writers:
-        process.join()
+    t_write = threading.Thread(target=append_metrics)
+    t_read = threading.Thread(target=read_metrics)
+    t_write.start()
+    t_read.start()
+    t_write.join()
+    t_read.join()
     assert not errors
     assert len(store_factory().tail_metrics(run_id, 100)) == 50

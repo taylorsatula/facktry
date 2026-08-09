@@ -21,10 +21,10 @@ def test_create_and_update_run_persist_manifest(tmp_path, monkeypatch):
 
     run = types.Run.from_dict(payloads()["Run"])
     store.create_run(run)
-    store.update_run_status(run.run_id, types.RunStatus.RUNNING)
+    store.update_run_status(run.run_id, types.RunStatus.running)
     manifest = store.workspace.runs / run.run_id / "manifest.json"
     assert json.loads(manifest.read_text())["run_id"] == run.run_id
-    assert store.get_run(run.run_id).status == types.RunStatus.RUNNING
+    assert store.get_run(run.run_id).status == types.RunStatus.running
 
 
 def test_failed_atomic_replacement_leaves_no_truncated_manifest(tmp_path, monkeypatch):
@@ -41,7 +41,7 @@ def test_failed_atomic_replacement_leaves_no_truncated_manifest(tmp_path, monkey
         raise OSError("simulated rename failure")
     monkeypatch.setattr(store_module.os, "replace", fail_replace)
     with pytest.raises(StoreError):
-        store.update_run_status(run.run_id, types.RunStatus.FAILED)
+        store.update_run_status(run.run_id, types.RunStatus.failed)
     assert manifest.read_bytes() == original
     json.loads(manifest.read_text())
 
