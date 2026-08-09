@@ -6,9 +6,9 @@ from __future__ import annotations
 class SerdeError(Exception):
     """Raised when serialization / deserialization violates an invariant.
 
-    Used by every ``from_dict`` implementation to reject bad input
-    (missing required field, invalid enum value, etc.) instead of silently
-    accepting or raising bare ``KeyError``/``ValueError``.
+    Wraps Pydantic ``ValidationError`` in ``HashableBase.from_dict()`` so
+    downstream code catches a single typed exception instead of bare
+    KeyError/ValueError or framework-specific errors.
     """
 
 

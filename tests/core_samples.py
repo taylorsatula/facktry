@@ -2,9 +2,14 @@
 
 HASH = "a" * 64
 
+BRIEF_REF = {"id": "brief-1", "version": 1, "brief_hash": HASH}
 
-def payloads():
-    gate = {
+TUPLE_COMPONENT: dict[str, str] = lambda ref: {"ref": ref, "hash": HASH}  # noqa: E731
+TC = TUPLE_COMPONENT  # shorthand helper
+
+
+def _gate() -> dict:
+    return {
         "name": "task_correctness",
         "severity": "hard",
         "comparator": ">=",
@@ -16,6 +21,10 @@ def payloads():
         "passed": True,
         "evidence": ["artifact:evidence-1"],
     }
+
+
+def payloads():
+    gate = _gate()
     brief = {
         "id": "brief-1",
         "version": 1,
@@ -53,25 +62,29 @@ def payloads():
     }
     stack = {
         "id": "stack-1",
-        "recipes": [{"id": "effect-a", "version": "0.1.0", "instruction_hash": HASH}],
+        "recipes": [
+            {"id": "effect-a", "version": "0.1.0", "instruction_hash": HASH},
+            {"id": "effect-b", "version": "0.2.0", "instruction_hash": HASH[:-8] + "bb" * 4},
+        ],
         "overrides": {"learning_rate": 0.0001},
         "allocation": {"grounded": 0.5},
         "conflict_decisions": [],
         "validation_plan": {"suites": ["suite-seal"], "hard_gates": ["task_correctness"]},
         "stack_hash": HASH,
     }
+
     return {
         "Gate": gate,
         "GateResult": {**gate, "observed": 0.91},
         "MissionBrief": brief,
         "Objective": {
             "id": "objective-1",
-            "mission_brief": {"id": "brief-1", "version": 1, "brief_hash": HASH},
+            "mission_brief": BRIEF_REF,
             "intent": "Improve the documented task behavior.",
             "deliverable": "release_tuple",
             "gates": [gate],
             "constraints": {"no_self_distill": True},
-            "budget": {"wall_time": 1, "gpu_hours": 1, "judge_tokens": 100, "smoke": 1, "scale": 1},
+            "budget": {"wall_time": 1, "gpu_hours": 1, "judge_tokens": 100, "smoke_runs": 1, "scale_runs": 1},
             "baselines": {"base": {"tuple_hash": HASH}},
             "suites": {"dev": {"ref": "suite-dev", "hash": HASH}, "seal": {"ref": "suite-seal", "hash": HASH}},
             "dependence_keys": ["scenario_id"],
@@ -82,21 +95,21 @@ def payloads():
             "supersedes": None,
         },
         "ReleaseTuple": {
-            "base_model": {"ref": "base", "hash": HASH},
+            "base_model": TC("base"),
             "adapter": None,
-            "tokenizer": {"revision": "rev-1", "hash": HASH},
-            "chat_template": HASH,
-            "prompt_policy": {"id": "prompt-1", "hash": HASH},
-            "tool_schema": {"id": "tools-1", "hash": HASH},
-            "decode": {"id": "decode-1", "hash": HASH, "config": {"temperature": 0.2}},
-            "guards": {"id": "guards-1", "hash": HASH},
-            "recipe_stack": {"id": "stack-1", "hash": HASH},
+            "tokenizer": TC("tok-rev-1"),
+            "chat_template": TC("tmpl-1"),
+            "prompt_policy": TC("prompt-1"),
+            "tool_schema": TC("tools-1"),
+            "decode": TC("decode-1"),
+            "guards": TC("guards-1"),
+            "recipe_stack": TC("stack-1"),
             "tuple_hash": HASH,
         },
         "Run": {
             "run_id": "run-1",
             "objective_id": "objective-1",
-            "mission_brief": {"id": "brief-1", "version": 1, "brief_hash": HASH},
+            "mission_brief": BRIEF_REF,
             "stage": "admit",
             "status": "completed",
             "parents": [{"run_id": "run-0", "relation": "parent"}],
@@ -110,17 +123,117 @@ def payloads():
             "metrics_path": "runs/run-1/metrics.jsonl",
             "recipe_stack": {"id": "stack-1", "hash": HASH},
         },
-        "Artifact": {"path": "artifacts/aa/item", "sha256": HASH, "role": "report", "producer_run_id": "run-1", "created_at": "2026-08-08T00:00:00Z", "media_type": "application/json"},
-        "Scorecard": {"suite_hash": HASH, "seeds": [1], "decode_hash": HASH, "subject_tuple_hash": HASH, "recipe_stack_hash": HASH, "dimensions": {"correctness": 0.9}, "raw": {"correctness": 0.9}, "guarded": {"correctness": 0.91}, "findings": [], "slices": {}, "resources": {"wall_time": 1}},
-        "Decision": {"action": "hold", "objective_id": "objective-1", "mission_brief_ref": {"id": "brief-1", "version": 1, "brief_hash": HASH}, "subject": {"tuple_hash": HASH}, "recipe_stack_ref": {"id": "stack-1", "hash": HASH}, "gate_results": [gate], "intervention": None, "human_requests": [], "dossier_ref": "artifact:dossier-1", "created_at": "2026-08-08T00:00:00Z"},
+        "Artifact": {
+            "path": "artifacts/aa/item",
+            "sha256": HASH,
+            "role": "report",
+            "producer_run_id": "run-1",
+            "created_at": "2026-08-08T00:00:00Z",
+            "media_type": "application/json",
+        },
+        "Scorecard": {
+            "suite_hash": HASH,
+            "seeds": [1],
+            "decode_hash": HASH,
+            "subject_tuple_hash": HASH,
+            "recipe_stack_hash": HASH,
+            "dimensions": {"correctness": 0.9},
+            "raw": {"correctness": 0.9},
+            "guarded": {"correctness": 0.91},
+            "findings": [],
+            "slices": {},
+            "resources": {"wall_time": 1},
+        },
+        "Decision": {
+            "action": "hold",
+            "objective_id": "objective-1",
+            "mission_brief_ref": BRIEF_REF,
+            "subject": {"tuple_hash": HASH},
+            "recipe_stack_ref": {"id": "stack-1", "hash": HASH},
+            "gate_results": [gate],
+            "intervention": None,
+            "human_requests": [],
+            "dossier_ref": "artifact:dossier-1",
+            "created_at": "2026-08-08T00:00:00Z",
+        },
         "Recipe": recipe,
         "RecipeStack": stack,
-        "Defect": {"id": "defect-1", "taxonomy": "over_specialize", "evidence": ["artifact:evidence-1"], "first_run_id": "run-1", "last_run_id": "run-1", "interventions": [], "status": "open"},
+        "Defect": {
+            "id": "defect-1",
+            "taxonomy": "over_specialize",
+            "evidence": ["artifact:evidence-1"],
+            "first_run_id": "run-1",
+            "last_run_id": "run-1",
+            "interventions": [],
+            "status": "open",
+        },
         "Policy": {"capabilities": {"train.smoke": True, "serve.flip_default": False}},
-        "BudgetLedger": {"wall_time": 1, "gpu_hours": 1, "judge_tokens": 100, "smoke_runs": 1, "scale_runs": 1},
-        "TrainCard": {"objective_id": "objective-1", "run_id": "run-1", "mission_brief": {"id": "brief-1", "version": 1, "brief_hash": HASH}, "parent_tuple_hash": HASH, "admission_report_hash": HASH, "mixture_counts": {"train": 2}, "interface_hashes": {"tokenizer": HASH}, "effective_examples": 2, "optimizer_steps": 1, "token_counts": {"target": 10}, "repeated_example_exposure": {"scenario-1": 1}, "target_length": {"mean": 5}, "lr_schedule": {"lr": 0.0001}, "seed": 1, "peak_vram": 1, "wall_time": 1, "teacher_id": "base", "reference_id": None, "best_checkpoint_ref": None, "recipe_stack_hash": HASH, "recipe_adaptations": []},
-        "MixtureSpec": {"dimensions": ["domain", "source_class"], "floors": {"domain:test": 1}, "caps": {"domain:test": 10}, "quotas": {"replay": 1, "ood": 1}},
-        "TargetShape": {"dimensions": ["domain", "source_class"], "floors": {"domain:test": 1}, "caps": {"domain:test": 10}, "quotas": {"replay": 1, "ood": 1}},
-        "AdmissionReport": {"input_artifacts": [HASH], "keep_count": 2, "reject_count": 1, "reject_reasons": {"schema": 1}, "overlap_matrix": {"train_eval": 0, "train_seal": 0, "eval_seal": 0}, "near_dupes": {"rate": 0}, "template_families": {"family-a": 2}, "mixture_deltas": {}, "teacher_id": "base", "transformation_policy_id": "policy-1", "seeds": [1], "suite_hash": HASH, "passed": True, "gate_results": [gate]},
-        "HumanInboxItem": {"id": "inbox-1", "objective_id": "objective-1", "gate_name": "taste", "payload_ref": "artifact:payload-1", "response_schema": {"type": "boolean"}, "created_at": "2026-08-08T00:00:00Z", "age": 0, "status": "pending"},
+        "BudgetLedger": {
+            "wall_time": 1,
+            "gpu_hours": 1,
+            "judge_tokens": 100,
+            "smoke_runs": 1,
+            "scale_runs": 1,
+        },
+        "TrainCard": {
+            "objective_id": "objective-1",
+            "run_id": "run-1",
+            "mission_brief": BRIEF_REF,
+            "parent_tuple_hash": HASH,
+            "admission_report_hash": HASH,
+            "mixture_counts": {"train": 2},
+            "interface_hashes": {"tokenizer": HASH},
+            "effective_examples": 2,
+            "optimizer_steps": 1,
+            "token_counts": {"target": 10},
+            "repeated_example_exposure": {"scenario-1": 1},
+            "target_length": {"mean": 5},
+            "lr_schedule": {"lr": 0.0001},
+            "seed": 1,
+            "peak_vram": 1,
+            "wall_time": 1,
+            "teacher_id": "base",
+            "reference_id": None,
+            "best_checkpoint_ref": None,
+            "recipe_stack_hash": HASH,
+            "recipe_adaptations": [],
+        },
+        "MixtureSpec": {
+            "dimensions": ["domain", "source_class"],
+            "floors": {"domain:test": 1},
+            "caps": {"domain:test": 10},
+            "quotas": {"replay": 1, "ood": 1},
+        },
+        "TargetShape": {
+            "dimensions": ["domain", "source_class"],
+            "floors": {"domain:test": 1},
+            "caps": {"domain:test": 10},
+            "quotas": {"replay": 1, "ood": 1},
+        },
+        "AdmissionReport": {
+            "input_artifacts": [HASH],
+            "keep_count": 2,
+            "reject_count": 1,
+            "reject_reasons": {"schema": 1},
+            "overlap_matrix": {"train_eval": 0, "train_seal": 0, "eval_seal": 0},
+            "near_dupes": {"rate": 0},
+            "template_families": {"family-a": 2},
+            "mixture_deltas": {},
+            "teacher_id": "base",
+            "transformation_policy_id": "policy-1",
+            "seeds": [1],
+            "suite_hash": HASH,
+            "passed": True,
+            "gate_results": [gate],
+        },
+        "HumanInboxItem": {
+            "id": "inbox-1",
+            "objective_id": "objective-1",
+            "gate_name": "taste",
+            "payload_ref": "artifact:payload-1",
+            "response_schema": {"type": "boolean"},
+            "created_at": "2026-08-08T00:00:00Z",
+            "age": 0,
+            "status": "pending",
+        },
     }

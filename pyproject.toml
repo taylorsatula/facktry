@@ -9,7 +9,9 @@ description = "Autonomous, governed model-development harness"
 readme = "README.md"
 license = {text = "SEE LICENSE FILE"}
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "pydantic>=2",
+]
 
 [project.scripts]
 facktry = "facktry.cli.main:main"
