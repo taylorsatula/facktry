@@ -72,6 +72,11 @@ class ObjectiveLintError(Exception):
         self.violations = violations
 
 
+class SuiteError(Exception):
+    "Raised when a suite operation violates an invariant."""
+    pass
+
+
 class ObjectiveFrozenError(ObjectiveLintError):
     """Attempt to mutate an already-frozen objective."""
 

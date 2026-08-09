@@ -328,7 +328,7 @@ class Scorecard(HashableBase):
     decode_hash: str
     subject_tuple_hash: str
     recipe_stack_hash: str | None = None
-    dimensions: dict[str, float]
+    dimensions: dict[str, Any]
     raw_channel: dict[str, float] = Field(alias="raw")
     guarded_channel: dict[str, float] = Field(alias="guarded")
     findings: list[dict[str, Any]]

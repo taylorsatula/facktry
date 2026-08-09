@@ -177,6 +177,14 @@ CREATE TABLE IF NOT EXISTS run_protection (
     ref_id       TEXT    NOT NULL DEFAULT '',
     UNIQUE(run_id, reason)
 );
+
+-- Suite registry: id + hash -> on-disk path
+CREATE TABLE IF NOT EXISTS suites (
+    suite_id     TEXT    NOT NULL,
+    suite_hash   TEXT    NOT NULL,
+    path         TEXT    NOT NULL,
+    UNIQUE(suite_id, suite_hash)
+);
 """
 
 # ---------------------------------------------------------------------------
@@ -515,6 +523,11 @@ class Store:
     # Objectives (bytes-level ops; lint/freeze in phase 03)
     # ======================================================================
 
+    def get_objective(self, objective_id: str) -> Any:
+        """Return a typed Objective instance loaded from the store."""
+        from facktry.objective import load_objective
+        return load_objective(self, objective_id)
+
     def save_objective(self, obj: Any, *, frozen: bool = True) -> None:
         """Save a typed Objective via canonical JSON and content hash."""
         d = obj.to_dict()
@@ -580,6 +593,99 @@ class Store:
             "SELECT objective_id FROM objectives WHERE frozen=1 ORDER BY ROWID DESC"
         ).fetchall()
         return [r[0] for r in rows]
+
+    # =====================================================================
+    # Suites
+    # =====================================================================
+
+    def register_suite(self, suite_obj: Any) -> None:
+        """Register a suite with atomic manifest write + hash verification.
+
+        Same id + different content = separate directory entry, never overwrite.
+        Dialogue suites must include at least one multi-turn case.
+        """
+        from facktry.errors import StoreError
+        from facktry.hashing import hash_file, hash_obj
+
+        suite_data = suite_obj.to_dict()
+        computed_hash = suite_obj.content_hash()
+        dir_name = f"{suite_obj.id}@{computed_hash}"
+        target_dir = self.workspace.suites / dir_name
+        target_path = target_dir / "suite.json"
+
+        # Lint: dialogue=true requires multi-turn cases.
+        metadata = suite_data.get("metadata", {})
+        if metadata.get("dialogue") is True:
+            has_multiturn = any(
+                c.get("kind") == "multi_turn" for c in suite_data.get("cases", [])
+            )
+            if not has_multiturn:
+                raise StoreError(
+                    f"Dialogue suite {suite_obj.id} lacks multi-turn cases",
+                )
+
+        target_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            _atomic_write_json(target_path, suite_data)
+        except StoreError:
+            raise
+
+        with self._db as conn:
+            conn.execute(
+                "INSERT OR IGNORE INTO suites "
+                "(suite_id, suite_hash, path) VALUES (?, ?, ?)",
+                [suite_obj.id, computed_hash, str(target_path)],
+            )
+
+    def get_suite(self, suite_id: str, suite_hash: str) -> Any:
+        """Retrieve a suite by id+hash; verifies hash on load."""
+        obj = self.load_suite(suite_id, suite_hash, verify=True)
+        return obj
+
+    def load_suite(self, suite_id: str, suite_hash: str, *, verify: bool = False) -> Any:
+        """Load suite from disk; optional hash verification.
+
+        Raises ``StoreError`` on tampered bytes when verify=True.
+        """
+        from facktry.errors import StoreError
+        from facktry.hashing import hash_obj
+        from facktry.suite.types import Suite
+
+        row = self._db.execute(
+            "SELECT path FROM suites WHERE suite_id=? AND suite_hash=?",
+            [suite_id, suite_hash],
+        ).fetchone()
+        if row is None:
+            raise StoreError(f"Suite {suite_id}@{suite_hash[:8]}... not found")
+
+        path_str = row[0]
+        path_obj = Path(path_str)
+        if not path_obj.exists():
+            raise StoreError(f"Suite file missing at {path_str}")
+
+        if verify:
+            try:
+                data_bytes = path_obj.read_bytes()
+                loaded_data = json.loads(data_bytes)
+                temp_suite = Suite.from_dict(loaded_data)
+                computed = temp_suite.content_hash()
+                if computed != suite_hash:
+                    raise StoreError(
+                        f"Suite {suite_id}@{suite_hash[:8]}... hash mismatch "
+                        f"(expected={suite_hash[:12]}, got={computed[:12]})",
+                    )
+            except StoreError:
+                raise
+            except Exception as e:
+                raise StoreError(
+                    f"Suite {suite_id}@{suite_hash[:8]}... tampered or corrupt: {e}",
+                ) from e
+
+        try:
+            suite_json = path_obj.read_text()
+        except Exception as e:
+            raise StoreError(f"Cannot read suite file: {e}") from e
+        return Suite.from_dict(json.loads(suite_json))
 
     # ======================================================================
     # Decisions

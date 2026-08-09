@@ -68,6 +68,10 @@ class Workspace:
         return self._sub("defects.jsonl")
 
     @property
+    def suites(self) -> Path:
+        return self._sub("suites")
+
+    @property
     def recipe_stacks(self) -> Path:
         return self._sub("recipe_stacks")
 
